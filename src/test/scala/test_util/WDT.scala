@@ -1,6 +1,6 @@
 // See README.md for license details.
 
-package test.util
+package test_util
 
 import chisel3._
 import chisel3.util._

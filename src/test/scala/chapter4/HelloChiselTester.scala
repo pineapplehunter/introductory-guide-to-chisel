@@ -2,14 +2,16 @@
 
 package chapter4
 
-import math.pow
+import chiseltest.{ChiselScalatestTester, VerilatorBackendAnnotation}
+import chiseltest.iotesters.PeekPokeTester
+import org.scalatest.flatspec.AnyFlatSpec
 
-import chisel3.iotesters._
+import math.pow
 
 /**
   * HelloChiselのテストモジュール
   */
-class HelloChiselTester extends ChiselFlatSpec {
+class HelloChiselTester extends AnyFlatSpec with ChiselScalatestTester {
 
   behavior of "HelloChisel"
 
@@ -17,13 +19,11 @@ class HelloChiselTester extends ChiselFlatSpec {
 
     // テストのために周期を短く設定
     val freq = 50 * pow(10, 3).toInt // 50kHz
-    val interval = 500               // 500msec
+    val interval = 500 // 500msec
 
-    Driver.execute(Array(
-      "-tn=HelloChisel",
-      "-td=test_run_dir/chapter4/HelloChisel",
-      "-tgvo=on", "-tbn=verilator"), () => new HelloChisel(freq, interval)) {
-      c => new PeekPokeTester(c) {
+    test(new HelloChisel(freq, interval))
+      .withAnnotations(Seq(VerilatorBackendAnnotation))
+      .runPeekPoke(c => new PeekPokeTester(c) {
         reset()
 
         // リセット直後はLow
@@ -39,7 +39,6 @@ class HelloChiselTester extends ChiselFlatSpec {
             i += 1
           }
         }
-      }
-    } should be (true)
+      })
   }
 }

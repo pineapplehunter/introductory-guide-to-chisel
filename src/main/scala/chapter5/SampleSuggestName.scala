@@ -3,6 +3,7 @@
 package chapter5
 
 import chisel3._
+import chisel3.stage.ChiselStage
 import chisel3.util._
 
 /**
@@ -17,7 +18,7 @@ class SampleSuggestName extends Module {
 
   io.out := io.in
 
-  when (io.sel) {
+  when(io.sel) {
     val w_out = io.in * 2.U
     w_out.suggestName("w_out")
     io.out := w_out
@@ -26,6 +27,7 @@ class SampleSuggestName extends Module {
 
 /**
   * suggestNameのサンプルその２
+  *
   * @param portNames 付与したいサフィックス
   */
 class SampleSuggestName2(portNames: Seq[String]) extends Module {
@@ -42,9 +44,9 @@ class SampleSuggestName2(portNames: Seq[String]) extends Module {
 }
 
 object ElaborateSampleSuggestName extends App {
-  Driver.execute(args, () => new SampleSuggestName)
+  (new ChiselStage).emitVerilog(new SampleSuggestName)
 }
 
 object ElaborateSampleSuggestName2 extends App {
-  Driver.execute(args, () => new SampleSuggestName2(Seq("A", "B")))
+  (new ChiselStage).emitVerilog(new SampleSuggestName2(Seq("A", "B")))
 }

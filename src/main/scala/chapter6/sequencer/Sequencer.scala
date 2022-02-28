@@ -12,14 +12,13 @@ import chapter6.{SimpleIO, SimpleIOParams}
   * Sequencerのステート
   */
 object State extends ChiselEnum {
-  val sIdle = Value
-  val sRX = Value
-  val sTX = Value
+  val sIdle, sRX, sTX = Value
 }
 
 /**
   * Uartのデータをループバックするシーケンサー
-  * @param p SimpleIOParamsのインスタンス
+  *
+  * @param p     SimpleIOParamsのインスタンス
   * @param debug trueでデバッグポートが追加される
   */
 class Sequencer(p: SimpleIOParams)
@@ -41,9 +40,9 @@ class Sequencer(p: SimpleIOParams)
   val r_read_interval = RegInit(0.U(4.W))
   val w_read_req = r_read_interval === 0xf.U
 
-  when (r_stm === sIdle) {
+  when(r_stm === sIdle) {
     r_read_interval := r_read_interval + 1.U
-  } .otherwise {
+  }.otherwise {
     r_read_interval := 0.U
   }
 
@@ -62,50 +61,50 @@ class Sequencer(p: SimpleIOParams)
   val w_tx_state_rden = r_fifo_full && !r_wait_data && (r_stm === sTX)
   val w_tx_state_wren = !r_fifo_full && !r_wait_data && (r_stm === sTX)
 
-  when (w_done_rx_data) {
+  when(w_done_rx_data) {
     r_rx_data := io.sio.rddata
   }
 
   // ステート遷移時にr_fifo_fullフラグをセット
-  when (w_done_rx_data) {
+  when(w_done_rx_data) {
     r_fifo_full := true.B
-  } .elsewhen(r_stm === sTX) {
-    when (io.sio.rddv) {
+  }.elsewhen(r_stm === sTX) {
+    when(io.sio.rddv) {
       r_fifo_full := io.sio.rddata(3)
     }
-  } .otherwise {
+  }.otherwise {
     r_fifo_full := false.B
   }
 
   // sTXステート内の処理切り替え
-  when (r_stm === sTX) {
-    when (io.sio.rddv) {
+  when(r_stm === sTX) {
+    when(io.sio.rddv) {
       r_wait_data := false.B
-    } .elsewhen(w_done_tx_data) {
+    }.elsewhen(w_done_tx_data) {
       r_wait_data := false.B
-    } .elsewhen(!r_wait_data) {
+    }.elsewhen(!r_wait_data) {
       r_wait_data := true.B
     }
-  } .otherwise {
+  }.otherwise {
     r_wait_data := false.B
   }
 
   w_done_tx_data := w_tx_state_wren
 
   // ステートマシン
-  switch (r_stm) {
-    is (sIdle) {
-      when (w_has_rx_data) {
+  switch(r_stm) {
+    is(sIdle) {
+      when(w_has_rx_data) {
         r_stm := sRX
       }
     }
-    is (sRX) {
-      when (w_done_rx_data) {
+    is(sRX) {
+      when(w_done_rx_data) {
         r_stm := sTX
       }
     }
-    is (sTX) {
-      when (w_done_tx_data) {
+    is(sTX) {
+      when(w_done_tx_data) {
         r_stm := sIdle
       }
     }

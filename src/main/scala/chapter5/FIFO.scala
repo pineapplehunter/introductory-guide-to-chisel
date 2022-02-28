@@ -12,9 +12,6 @@ class FIFORdIO[T <: Data](gen: T) extends Bundle {
   val enable = Input(Bool())
   val empty = Output(Bool())
   val data = Output(gen)
-
-  override def cloneType: this.type =
-    new FIFORdIO(gen).asInstanceOf[this.type]
 }
 
 /**
@@ -24,9 +21,6 @@ class FIFOWrIO[T <: Data](gen: T) extends Bundle {
   val enable = Input(Bool())
   val full = Output(Bool())
   val data = Input(gen)
-
-  override def cloneType: this.type =
-    new FIFOWrIO(gen).asInstanceOf[this.type]
 }
 
 /**
@@ -49,9 +43,6 @@ class FIFOIO[T <: Data](gen: T, depth: Int=16, debug: Boolean=false) extends Bun
   })) } else {
     None
   }
-
-  override def cloneType: this.type =
-    new FIFOIO(gen, depth, debug).asInstanceOf[this.type]
 }
 
 /**

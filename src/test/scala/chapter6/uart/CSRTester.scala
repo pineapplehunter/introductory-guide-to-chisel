@@ -3,19 +3,21 @@
 package chapter6.uart
 
 import chapter6.SimpleIOParams
+import chiseltest.iotesters.PeekPokeTester
+import test_util.BaseTester
 
 import scala.math.{floor, random}
-import chisel3.iotesters._
-import test.util.BaseTester
 
 /**
   * CSRモジュールのテスト制御クラス
+  *
   * @param c CSR
   */
 class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
 
   /**
     * アイドル
+    *
     * @param cycle アイドルのサイクル数
     */
   def idle(cycle: Int = 1): Unit = {
@@ -26,6 +28,7 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
 
   /**
     * レジスタライト
+    *
     * @param addr レジスタのアドレス
     * @param data ライトデータ
     */
@@ -38,8 +41,9 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
 
   /**
     * レジスタリード
+    *
     * @param addr レジスタのアドレス
-    * @param exp リードの期待値
+    * @param exp  リードの期待値
     */
   def hread(addr: Int, exp: Int): Unit = {
     poke(c.io.sram.addr, addr)
@@ -51,6 +55,7 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
 
   /**
     * 受信FIFOへのライト
+    *
     * @param data register write data
     */
   def uwrite(data: Int): Unit = {
@@ -89,17 +94,18 @@ class CSRTester extends BaseTester {
       "--target-dir" -> s"test_run_dir/$outDir"
     ))
 
-    Driver.execute(args, () => new CSR(sp)(true)) {
-      c => new CSRUnitTester(c) {
-        val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
+    test(new CSR(sp)(true)).runPeekPoke {
+      c =>
+        new CSRUnitTester(c) {
+          val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
 
-        idle()
-        for (d <- txData) {
-          hwrite(RegInfo.txFifo, d)
-          expect(c.io.dbg.get.tx_fifo, d)
+          idle()
+          for (d <- txData) {
+            hwrite(RegInfo.txFifo, d)
+            expect(c.io.dbg.get.tx_fifo, d)
+          }
         }
-      }
-    } should be (true)
+    }
   }
 
   it should "送信FIFOにライトするとtx_emptyビットが0に遷移する" in {
@@ -110,16 +116,17 @@ class CSRTester extends BaseTester {
       "--target-dir" -> s"test_run_dir/$outDir"
     ))
 
-    Driver.execute(args, () => new CSR(sp)(true)) {
-      c => new CSRUnitTester(c) {
-        val txData = 0xff
+    test(new CSR(sp)(true)).runPeekPoke {
+      c =>
+        new CSRUnitTester(c) {
+          val txData = 0xff
 
-        idle()
-        expect(c.io.r2c.tx.empty, true)
-        hwrite(RegInfo.txFifo, txData)
-        expect(c.io.r2c.tx.empty, false)
-      }
-    } should be (true)
+          idle()
+          expect(c.io.r2c.tx.empty, true)
+          hwrite(RegInfo.txFifo, txData)
+          expect(c.io.r2c.tx.empty, false)
+        }
+    }
   }
 
   it should "be able to read Stat register from Host" in {
@@ -129,16 +136,18 @@ class CSRTester extends BaseTester {
       "--target-dir" -> s"test_run_dir/$outDir"
     ))
 
-    Driver.execute(args, () => new CSR(sp)(true)) {
-      c => new CSRUnitTester(c) {
-        val txData = 0xff
+    test(new CSR(sp)(true)).runPeekPoke {
+      c =>
+        new CSRUnitTester(c) {
+          val txData = 0xff
 
-        idle()
-        expect(c.io.r2c.tx.empty, true)
-        hwrite(RegInfo.txFifo, txData)
-        expect(c.io.r2c.tx.empty, false)
-      }
-    } should be (true)  }
+          idle()
+          expect(c.io.r2c.tx.empty, true)
+          hwrite(RegInfo.txFifo, txData)
+          expect(c.io.r2c.tx.empty, false)
+        }
+    }
+  }
 
   // Ctrlレジスタは使用していないのでテスト実行対象から除外
   // その場合は次のように"ignore"を指定する
@@ -155,17 +164,18 @@ class CSRTester extends BaseTester {
       "--target-dir" -> s"test_run_dir/$outDir"
     ))
 
-    Driver.execute(args, () => new CSR(sp)(true)) {
-      c => new CSRUnitTester(c) {
-        val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
+    test(new CSR(sp)(true)).runPeekPoke {
+      c =>
+        new CSRUnitTester(c) {
+          val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
 
-        idle()
-        for (d <- txData) {
-          uwrite(d)
-          expect(c.io.dbg.get.rx_fifo, txData(0))
+          idle()
+          for (d <- txData) {
+            uwrite(d)
+            expect(c.io.dbg.get.rx_fifo, txData(0))
+          }
         }
-      }
-    } should be (true)
+    }
   }
 
   it should "ホスト側からは受信FIFOをリードできる" in {
@@ -176,16 +186,17 @@ class CSRTester extends BaseTester {
       "--target-dir" -> s"test_run_dir/$outDir"
     ))
 
-    Driver.execute(args, () => new CSR(sp)(true)) {
-      c => new CSRUnitTester(c) {
-        val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
+    test(new CSR(sp)(true)).runPeekPoke {
+      c =>
+        new CSRUnitTester(c) {
+          val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
 
-        idle()
-        for (d <- txData) {
-          hwrite(RegInfo.txFifo, d)
-          expect(c.io.dbg.get.tx_fifo, d)
+          idle()
+          for (d <- txData) {
+            hwrite(RegInfo.txFifo, d)
+            expect(c.io.dbg.get.tx_fifo, d)
+          }
         }
-      }
-    } should be (true)
+    }
   }
 }

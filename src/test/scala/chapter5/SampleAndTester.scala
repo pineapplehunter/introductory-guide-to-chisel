@@ -2,11 +2,15 @@
 
 package chapter5
 
-import chisel3.iotesters._
+import chiseltest.ChiselScalatestTester
+import chiseltest.iotesters.PeekPokeTester
+import org.scalatest.flatspec.AnyFlatSpec
+
 
 /**
   * SampleAndの単体テスト用クラス
   * こちらにはテスト時に使用する制御用のメソッドを定義
+  *
   * @param c
   */
 class SampleAndUnitTester(c: SampleAnd) extends PeekPokeTester(c) {
@@ -31,7 +35,7 @@ class SampleAndUnitTester(c: SampleAnd) extends PeekPokeTester(c) {
   * SampleAndのテストクラス
   * テストの管理を行う
   */
-class SampleAndTester extends ChiselFlatSpec {
+class SampleAndTester extends AnyFlatSpec with ChiselScalatestTester {
   val dutName = "SampleAnd"
 
   behavior of dutName
@@ -43,25 +47,19 @@ class SampleAndTester extends ChiselFlatSpec {
 
   // 最初のサンプルのテストを実装
   it should "(a, b) = (0, 0)の時、出力cは0になる" in {
-    Driver.execute(args, () => new SampleAnd) {
-      // 上で定義したSampleUnitTesterをインスタンス
-      c => new SampleAndUnitTester(c) {
-        set(0, 0)
-        compare(0)
-      }
-    } should be (true)
+    test(new SampleAnd).runPeekPoke(c => new SampleAndUnitTester(c) {
+      set(0, 0)
+      compare(0)
+    })
   }
 
   // まとめて実施
   it should "(a, b)の組み合わせを入れた際にa && bの値が出力される" in {
-    Driver.execute(args, () => new SampleAnd) {
-      // 上で定義したSampleUnitTesterをインスタンス
-      c => new SampleAndUnitTester(c) {
-        for (a <- 0 to 1; b <- 0 to 1) {
-          set(a, b)
-          compare(a & b)
-        }
+    test(new SampleAnd).runPeekPoke(c => new SampleAndUnitTester(c) {
+      for (a <- 0 to 1; b <- 0 to 1) {
+        set(a, b)
+        compare(a & b)
       }
-    } should be (true)
+    })
   }
 }

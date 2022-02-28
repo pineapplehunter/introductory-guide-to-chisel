@@ -21,9 +21,6 @@ class UartTopIO(p: SimpleIOParams)
   val mbus = Flipped(new SimpleIO(p))
   val uart= new UartIO
   val dbg = if (debug) Some(new CSRDebugIO) else None
-
-  override def cloneType: this.type =
-    new UartTopIO(p).asInstanceOf[this.type]
 }
 
 /**

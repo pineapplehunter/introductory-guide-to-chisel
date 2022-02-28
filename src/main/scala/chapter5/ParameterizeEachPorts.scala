@@ -14,10 +14,6 @@ class ParameterizeEachPortsIO(dataBits: Int) extends Bundle {
   val strbBits = dataBits / 8
   val strb = UInt(strbBits.W)
   val data = UInt(dataBits.W)
-
-  // パラメーターを行うのでcloneTypeの定義が必要
-  override def cloneType: this.type =
-    new ParameterizeEachPortsIO(dataBits).asInstanceOf[this.type]
 }
 
 /**

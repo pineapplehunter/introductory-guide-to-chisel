@@ -1,10 +1,10 @@
 // See README.md for license details.
 
 import math.pow
-
 import chapter5.{RX, TX}
 import chapter6.SimpleIOParams
 import chisel3._
+import chisel3.stage.ChiselStage
 
 /**
   * Stringでもらったクラスのパスからインスタンスを生成する
@@ -12,6 +12,7 @@ import chisel3._
 object GetInstance {
   /**
     * apply
+    *
     * @param modPath インスタンスを生成したいChiselモジュールのクラスパス
     * @return modPathで指定したChiselモジュールのインスタンス
     * @note このapplyで作れるのはクラスパラメータを持たないクラスのみ
@@ -41,38 +42,36 @@ object RTLGenerator extends App {
   args(0) match {
     // chapter1
     case "chapter1.FIFO" =>
-      chisel3.Driver.execute(genArgs, () => new chapter1.FIFO(16))
+      (new ChiselStage).emitVerilog(new chapter1.FIFO(16))
     // chapter4
     case "chapter4.HelloChisel" =>
       val freq = 100 * pow(10, 6).toInt // 50MHz
-      val interval = 500                // 500msec
-      Driver.execute(args, () => new chapter4.HelloChisel(freq, interval))
+      val interval = 500 // 500msec
+      (new ChiselStage).emitVerilog(new chapter4.HelloChisel(freq, interval))
     // chapter5
     case "chapter5.SampleTop" =>
-      chisel3.Driver.execute(genArgs, () => new chapter5.SampleTop(4, 8))
+      (new ChiselStage).emitVerilog(new chapter5.SampleTop(4, 8))
     case "chapter5.SampleDontTouch" =>
       val modName = "SampleDontTouch"
-      chisel3.Driver.execute(genArgs :+ s"-tn=${modName}_true",
-        () => new chapter5.SampleDontTouch(true))
-      chisel3.Driver.execute(genArgs :+ s"-tn=${modName}_false",
-        () => new chapter5.SampleDontTouch(false))
+      (new ChiselStage).emitVerilog(new chapter5.SampleDontTouch(true))
+      (new ChiselStage).emitVerilog(new chapter5.SampleDontTouch(false))
     case "chapter5.SampleDelayParameterizeTop" =>
-      chisel3.Driver.execute(genArgs, () => new chapter5.SampleDelayParameterizeTop(true, false))
+      (new ChiselStage).emitVerilog(new chapter5.SampleDelayParameterizeTop(true, false))
     case "chapter5.SampleNDelayParameterizeTop" =>
-      chisel3.Driver.execute(genArgs, () => new chapter5.SampleNDelayParameterizeTop(5, 10))
+      (new ChiselStage).emitVerilog(new chapter5.SampleNDelayParameterizeTop(5, 10))
     case "chapter5.ParameterizeEachPorts" =>
       val portParams = Range(8, 25, 8) // 8, 16, 24
-      chisel3.Driver.execute(genArgs, () => new chapter5.ParameterizeEachPorts(portParams))
+      (new ChiselStage).emitVerilog(new chapter5.ParameterizeEachPorts(portParams))
     case "chapter5.IOPortParameterize" =>
-      chisel3.Driver.execute(genArgs, () => new chapter5.IOPortParameterize(true, false))
+      (new ChiselStage).emitVerilog(new chapter5.IOPortParameterize(true, false))
     case "chapter5.IOParameterize" =>
-      chisel3.Driver.execute(genArgs, () => new chapter5.IOParameterize(TX))
-      chisel3.Driver.execute(genArgs, () => new chapter5.IOParameterize(RX))
+      (new ChiselStage).emitVerilog(new chapter5.IOParameterize(TX))
+      (new ChiselStage).emitVerilog(new chapter5.IOParameterize(RX))
     case "chapter5.SampleSuggestName2" =>
-      chisel3.Driver.execute(genArgs, () => new chapter5.SampleSuggestName2(Seq("A", "B")))
+      (new ChiselStage).emitVerilog(new chapter5.SampleSuggestName2(Seq("A", "B")))
     case "chapter6.EchoBackTop" =>
       val p = SimpleIOParams()
-      chisel3.Driver.execute(genArgs, () => new chapter6.EchoBackTop(p))
-    case _ => chisel3.Driver.execute(genArgs, () => GetInstance(args(0)))
+      (new ChiselStage).emitVerilog(new chapter6.EchoBackTop(p))
+    case _ => (new ChiselStage).emitVerilog(GetInstance(args(0)))
   }
 }

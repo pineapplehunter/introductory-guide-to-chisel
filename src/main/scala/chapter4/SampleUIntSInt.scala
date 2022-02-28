@@ -3,7 +3,6 @@
 package chapter4
 
 import chisel3._
-import chisel3.iotesters._
 import chisel3.util._
 
 /**

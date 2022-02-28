@@ -3,7 +3,6 @@
 package chapter4
 
 import chisel3._
-import chisel3.iotesters._
 import chisel3.util._
 
 import chisel3.util.experimental.loadMemoryFromFile
@@ -36,21 +35,21 @@ class VecMem extends Module {
   // リード：データがVec(2, UInt(8.W)で出力される
   io.rddata := Cat(m_mem.read(io.addr))
 }
-
-object TestVecMem extends App {
-
-  val dut = "VecMem"
-
-  iotesters.Driver.execute(Array(
-    s"-tn=$dut", s"-td=test_run_dir/$dut", "-tgvo=on"//, "-tbn=verilator"
-  ), () => new VecMem) {
-    c => new PeekPokeTester(c) {
-
-      for (addr <- 0 until 0x10) {
-        poke(c.io.addr, addr)
-        step(1)
-      }
-      fail
-    }
-  }
-}
+//TODO:fix
+//object TestVecMem extends App {
+//
+//  val dut = "VecMem"
+//
+//  iotesters.Driver.execute(Array(
+//    s"-tn=$dut", s"-td=test_run_dir/$dut", "-tgvo=on"//, "-tbn=verilator"
+//  ), () => new VecMem) {
+//    c => new PeekPokeTester(c) {
+//
+//      for (addr <- 0 until 0x10) {
+//        poke(c.io.addr, addr)
+//        step(1)
+//      }
+//      fail
+//    }
+//  }
+//}

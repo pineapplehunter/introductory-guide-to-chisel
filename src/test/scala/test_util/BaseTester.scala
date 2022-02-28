@@ -1,8 +1,9 @@
 // See README.md for license details.
 
-package test.util
+package test_util
 
-import chisel3.iotesters._
+import chiseltest.ChiselScalatestTester
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{BeforeAndAfterAllConfigMap, ConfigMap}
 
 /**
@@ -11,8 +12,8 @@ import org.scalatest.{BeforeAndAfterAllConfigMap, ConfigMap}
   * testOnlyコマンド実行時にシミュレーションのオプション設定を行う
   * 機能を追加している。
   */
-abstract class BaseTester extends ChiselFlatSpec
-  with BeforeAndAfterAllConfigMap  {
+abstract class BaseTester extends AnyFlatSpec
+  with ChiselScalatestTester with BeforeAndAfterAllConfigMap {
 
   // testOnlyの引数未指定時の設定
   val defaultArgs = scala.collection.mutable.Map(
@@ -24,6 +25,7 @@ abstract class BaseTester extends ChiselFlatSpec
   /**
     * BeforeAndAfterAllConfigMapで定義されるbeforeAllメソッドを
     * オーバーライドして、実行時の引数を取得する
+    *
     * @param configMap ScalaTest ConfigMap
     */
   override def beforeAll(configMap: ConfigMap): Unit = {
@@ -42,6 +44,7 @@ abstract class BaseTester extends ChiselFlatSpec
 
   /**
     * デフォルトの引数をiotesters.Driver.executeに渡せるように加工する
+    *
     * @param optArgs テストごとの引数設定（テストの実行ディレクトリの設定など）
     * @return 引数をArray[String]に変換したもの
     */
@@ -57,6 +60,7 @@ abstract class BaseTester extends ChiselFlatSpec
   /**
     * テスト対象モジュールの名称を取得
     * 派生クラス側で実装が必須
+    *
     * @return テスト対象モジュールの名称
     */
   def dutName: String

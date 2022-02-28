@@ -2,8 +2,10 @@
 
 package chapter1
 
-import chisel3.iotesters._
-import test.util.BaseTester
+import chiseltest.ChiselScalatestTester
+import chiseltest.iotesters.PeekPokeTester
+import org.scalatest.flatspec.AnyFlatSpec
+import test_util.BaseTester
 
 import scala.math.{floor, random}
 
@@ -59,7 +61,7 @@ class FIFOUnitTester(c: FIFO) extends PeekPokeTester(c) {
 /**
   * FIFOのテストクラス
   */
-class FIFOTester extends ChiselFlatSpec {
+class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
   val dutName = "chapter1.FIFO"
   val dataBits = 8
   val depth = 16
@@ -72,19 +74,17 @@ class FIFOTester extends ChiselFlatSpec {
       "-tgvo=on"
     )
 
-    Driver.execute(args, () => new FIFO(dataBits, depth, true)) {
-      c => new FIFOUnitTester(c) {
-        val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+      val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
 
-        expect(c.io.rd.empty, true)
-        for ((data, idx) <- setData.zipWithIndex) {
-          push(data)
-          expect(c.io.rd.empty, false)
-          expect(c.io.rd.data, setData(0))
-        }
-        idle()
+      expect(c.io.rd.empty, true)
+      for ((data, idx) <- setData.zipWithIndex) {
+        push(data)
+        expect(c.io.rd.empty, false)
+        expect(c.io.rd.data, setData(0))
       }
-    } should be (true)
+      idle()
+    })
   }
 
   it should "ホストがpopを実行すると、FIFOからデータが読み出される [FIFO-001]" in {
@@ -95,25 +95,23 @@ class FIFOTester extends ChiselFlatSpec {
       "-tgvo=on"
     )
 
-    Driver.execute(args, () => new FIFO(dataBits, depth, true)) {
-      c => new FIFOUnitTester(c) {
-        val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+      val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
 
-        // data set
-        for (data <- setData) {
-          expect(c.io.wr.full, false)
-          push(data)
-        }
-        expect(c.io.wr.full, true)
-        idle()
-
-        // pop
-        for ((data, idx) <- setData.zipWithIndex) {
-          pop(data)
-        }
-        idle()
+      // data set
+      for (data <- setData) {
+        expect(c.io.wr.full, false)
+        push(data)
       }
-    } should be (true)
+      expect(c.io.wr.full, true)
+      idle()
+
+      // pop
+      for ((data, idx) <- setData.zipWithIndex) {
+        pop(data)
+      }
+      idle()
+    })
   }
 
   it should "pushとpopが同時に起きた場合、FIFOのデータ数は維持される [FIFO-002]" in {
@@ -124,18 +122,17 @@ class FIFOTester extends ChiselFlatSpec {
       "-tgvo=on"
     )
 
-    Driver.execute(args, () => new FIFO(dataBits, depth, true)) {
-      c => new FIFOUnitTester(c) {
-        val txData = Range(0, 128).map(_ => floor(random * 256).toInt)
-        expect(c.io.dbg.get.r_data_ctr, 0x0)
-        push(txData(0))
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+      val txData = Range(0, 128).map(_ => floor(random * 256).toInt)
+      expect(c.io.dbg.get.r_data_ctr, 0x0)
+      push(txData(0))
 
-        for ((data, exp) <- txData.tail.zip(txData)) {
-          expect(c.io.dbg.get.r_data_ctr, 0x1)
-          pushAndPop(data, exp)
-        }
+      for ((data, exp) <- txData.tail.zip(txData)) {
+        expect(c.io.dbg.get.r_data_ctr, 0x1)
+        pushAndPop(data, exp)
       }
-    } should be (true)
+    })
+
   }
 
   it should "FIFOの段数を超えるデータが設定されると" +
@@ -147,16 +144,14 @@ class FIFOTester extends ChiselFlatSpec {
       "-tgvo=on"
     )
 
-    Driver.execute(args, () => new FIFO(dataBits, depth, true)) {
-      c => new FIFOUnitTester(c) {
-        val txData = Range(0, 17).map(_ => floor(random * 256).toInt)
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+      val txData = Range(0, 17).map(_ => floor(random * 256).toInt)
 
-        for ((data, ptr) <- txData.zipWithIndex) {
-          val expPtr = if (ptr == depth) 0 else ptr
-          expect(c.io.dbg.get.r_wrptr, expPtr)
-          push(data)
-        }
+      for ((data, ptr) <- txData.zipWithIndex) {
+        val expPtr = if (ptr == depth) 0 else ptr
+        expect(c.io.dbg.get.r_wrptr, expPtr)
+        push(data)
       }
-    } should be (true)
+    })
   }
 }

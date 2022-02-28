@@ -43,9 +43,6 @@ class FIFOIO(bits: Int, depth: Int=16, debug: Boolean=false) extends Bundle {
   })) } else {
     None
   }
-
-  override def cloneType: this.type =
-    new FIFOIO(bits, depth, debug).asInstanceOf[this.type]
 }
 
 /**

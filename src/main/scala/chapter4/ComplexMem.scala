@@ -3,7 +3,6 @@
 package chapter4
 
 import chisel3._
-import chisel3.iotesters._
 import chisel3.util._
 
 import chisel3.util.experimental.loadMemoryFromFile
@@ -39,30 +38,30 @@ class ComplexMem extends Module {
 
   io.rddata := m_mem(io.addr)
 }
-
-object TestComplexMem extends App {
-
-  val dut = "ComplexMem"
-
-  iotesters.Driver.execute(Array(
-    s"-tn=$dut", s"-td=test_run_dir/$dut", "-tgvo=on", "-tbn=verilator"
-    //s"-tn=$dut", s"-td=test_run_dir/$dut", "-tgvo=on"//, "-tbn=firrtl"
-  ), () => new ComplexMem) {
-    c => new PeekPokeTester(c) {
-
-      for (addr <- 0 until 0x10) {
-        poke(c.io.addr, addr)
-        step(1)
-      }
-
-      poke(c.io.addr, 2)
-      poke(c.io.wren, true)
-      poke(c.io.wrdata.a, 0x80)
-      poke(c.io.wrdata.b, -1)
-      poke(c.io.wrdata.c, false)
-      step(1)
-      poke(c.io.wren, false)
-      step(2)
-    }
-  }
-}
+//TODO:fix
+//object TestComplexMem extends App {
+//
+//  val dut = "ComplexMem"
+//
+//  iotesters.Driver.execute(Array(
+//    s"-tn=$dut", s"-td=test_run_dir/$dut", "-tgvo=on", "-tbn=verilator"
+//    //s"-tn=$dut", s"-td=test_run_dir/$dut", "-tgvo=on"//, "-tbn=firrtl"
+//  ), () => new ComplexMem) {
+//    c => new PeekPokeTester(c) {
+//
+//      for (addr <- 0 until 0x10) {
+//        poke(c.io.addr, addr)
+//        step(1)
+//      }
+//
+//      poke(c.io.addr, 2)
+//      poke(c.io.wren, true)
+//      poke(c.io.wrdata.a, 0x80)
+//      poke(c.io.wrdata.b, -1)
+//      poke(c.io.wrdata.c, false)
+//      step(1)
+//      poke(c.io.wren, false)
+//      step(2)
+//    }
+//  }
+//}

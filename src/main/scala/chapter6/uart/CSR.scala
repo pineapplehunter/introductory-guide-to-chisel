@@ -22,7 +22,7 @@ object RegInfo {
   * CSRのレジスタ用クラス
   */
 abstract class UartReg extends Bundle {
-  def write(data: UInt)
+  def write(data: UInt): Unit
   def read(): UInt
 }
 
@@ -74,9 +74,6 @@ class CSRIO(p: SimpleIOParams)(implicit debug: Boolean = false) extends Bundle {
   val sram = Flipped(new SimpleIO(p))
   val r2c = new CSR2CtrlIO()
   val dbg = if (debug) Some(new CSRDebugIO) else None
-
-  override def cloneType: this.type =
-    new CSRIO(p).asInstanceOf[this.type ]
 }
 
 /**

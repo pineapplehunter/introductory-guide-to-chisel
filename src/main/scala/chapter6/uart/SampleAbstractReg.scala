@@ -3,6 +3,7 @@
 package chapter6.uart
 
 import chisel3._
+import chisel3.stage.ChiselStage
 import chisel3.util._
 
 object RegAddress {
@@ -26,6 +27,7 @@ class RegA extends UartReg {
 }
 
 class RegB extends RegA
+
 class RegC extends RegA
 
 // RegAと同様にRegB / RegCを実装
@@ -53,7 +55,7 @@ class SampleAbstractReg extends Module {
   addrSeq.zip(regSeq).foreach {
     case (addr, reg) =>
       // ライトの条件を満たしたら、各レジスタのwriteを呼び出す
-      when (io.wren && (io.addr === addr.U)) {
+      when(io.wren && (io.addr === addr.U)) {
         reg.write(io.wrdata)
       }
   }
@@ -71,5 +73,5 @@ class SampleAbstractReg extends Module {
 }
 
 object E extends App {
-  Driver.execute(Array(""), () => new SampleAbstractReg)
+  (new ChiselStage).emitVerilog(new SampleAbstractReg)
 }

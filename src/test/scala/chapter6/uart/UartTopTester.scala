@@ -2,17 +2,16 @@
 
 package chapter6.uart
 
+import chiseltest.iotesters.PeekPokeTester
+import test_util.BaseTester
+
 import scala.math.{floor, pow, random, round}
-
-import chisel3.iotesters._
-
-
-import test.util.BaseTester
 
 /**
   * UartTopのテスト制御用クラス
-  * @param c テスト対象モジュール (UartTop)
-  * @param baudrate ボーレート
+  *
+  * @param c         テスト対象モジュール (UartTop)
+  * @param baudrate  ボーレート
   * @param clockFreq クロックの周波数
   */
 class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debug: Boolean = false)
@@ -38,6 +37,7 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
 
   /**
     * Uart register write
+    *
     * @param addr destination address
     * @param data data to write
     */
@@ -50,6 +50,7 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
 
   /**
     * レジスタライト
+    *
     * @param addr レジスタアドレス
     * @param data ライトデータ
     */
@@ -65,9 +66,10 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
 
   /**
     * レジスタリード
+    *
     * @param addr レジスタアドレス
-    * @param exp 期待値
-    * @param cmp 期待値比較を実行するかどうかのフラグ
+    * @param exp  期待値
+    * @param cmp  期待値比較を実行するかどうかのフラグ
     * @return リードデータ
     */
   def read(addr: Int, exp: BigInt, cmp: Boolean = true): BigInt = {
@@ -88,6 +90,7 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
 
   /**
     * UART送信
+    *
     * @param data 送信するデータ
     */
   def send(data: Int): Unit = {
@@ -118,6 +121,7 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
 
   /**
     * UART受信
+    *
     * @param exp 期待値
     */
   def receive(exp: Int): Unit = {
@@ -173,24 +177,25 @@ class UartTopTester extends BaseTester {
     val baudrate = 500000
     val clockFreq = 1
 
-    Driver.execute(args, () => new UartTop(baudrate, clockFreq)) {
-      c => new UartTopUnitTester(c, baudrate, clockFreq) {
+    test(new UartTop(baudrate, clockFreq)).runPeekPoke {
+      c =>
+        new UartTopUnitTester(c, baudrate, clockFreq) {
 
-        val txData = Range(0, 100).map(_ => floor(random * 256).toInt)
+          val txData = Range(0, 100).map(_ => floor(random * 256).toInt)
 
-        idle()
+          idle()
 
-        step(10)
-        for (data <- txData) {
-          while ((read(stat, 0x4, cmp=false) & 0x4) == 0x0) {
-            step(1)
+          step(10)
+          for (data <- txData) {
+            while ((read(stat, 0x4, cmp = false) & 0x4) == 0x0) {
+              step(1)
+            }
+            read(stat, 0x4) // TxFifoEmpty
+            write(txFifo, data)
+            receive(data)
           }
-          read(stat, 0x4) // TxFifoEmpty
-          write(txFifo, data)
-          receive(data)
         }
-      }
-    } should be (true)
+    }
   }
 
   it should "送信FIFOにデータをライトすると、TxEmptyビットが0x0に遷移する" +
@@ -204,23 +209,24 @@ class UartTopTester extends BaseTester {
     val baudrate = 500000
     val clockFreq = 1
 
-    Driver.execute(args, () => new UartTop(baudrate, clockFreq)) {
-      c => new UartTopUnitTester(c, baudrate, clockFreq) {
+    test(new UartTop(baudrate, clockFreq)).runPeekPoke {
+      c =>
+        new UartTopUnitTester(c, baudrate, clockFreq) {
 
-        val txData = Range(0, 100).map(_ => floor(random * 256).toInt)
+          val txData = Range(0, 100).map(_ => floor(random * 256).toInt)
 
-        idle()
+          idle()
 
-        for (data <- txData) {
-          while ((read(stat, 0x4, cmp=false) & 0x4) == 0x0) {
-            step(1)
+          for (data <- txData) {
+            while ((read(stat, 0x4, cmp = false) & 0x4) == 0x0) {
+              step(1)
+            }
+            read(stat, 0x4) // TxFifoEmpty
+            write(txFifo, data)
+            read(stat, 0x0) // TxFifoEmpty 1 -> 0
           }
-          read(stat, 0x4) // TxFifoEmpty
-          write(txFifo, data)
-          read(stat, 0x0) // TxFifoEmpty 1 -> 0
         }
-      }
-    } should be (true)
+    }
   }
 
   it should "送信FIFOにデータを連続で16個ライトすると、TxFullビットが0x1に遷移する" +
@@ -234,25 +240,26 @@ class UartTopTester extends BaseTester {
     val baudrate = 9600
     val clockFreq = 100
 
-    Driver.execute(args, () => new UartTop(baudrate, clockFreq)) {
-      c => new UartTopUnitTester(c, baudrate, clockFreq) {
+    test(new UartTop(baudrate, clockFreq)).runPeekPoke {
+      c =>
+        new UartTopUnitTester(c, baudrate, clockFreq) {
 
-        val txData = Range(0, 16).map(_ => floor(random * 256).toInt)
+          val txData = Range(0, 16).map(_ => floor(random * 256).toInt)
 
-        idle()
+          idle()
 
-        // TxEmptyを確認
-        while ((read(stat, 0x4, cmp=false) & 0x4) == 0x0) {
-          step(1)
+          // TxEmptyを確認
+          while ((read(stat, 0x4, cmp = false) & 0x4) == 0x0) {
+            step(1)
+          }
+
+          // データを連続でライト
+          for (data <- txData) {
+            write(txFifo, data)
+          }
+          read(stat, 0x8) // TxFifoFull 0 -> 1
         }
-
-        // データを連続でライト
-        for (data <- txData) {
-          write(txFifo, data)
-        }
-        read(stat, 0x8) // TxFifoFull 0 -> 1
-      }
-    } should be (true)
+    }
   }
 
   it should s"ボーレート／クロック周波数を変更しても適切に送信できる [$dutName-tx-100]" in {
@@ -265,24 +272,25 @@ class UartTopTester extends BaseTester {
     val baudrate = 9600
     val clockFreq = 100
 
-    Driver.execute(args, () => new UartTop(baudrate, clockFreq)) {
-      c => new UartTopUnitTester(c, baudrate, clockFreq) {
+    test(new UartTop(baudrate, clockFreq)).runPeekPoke {
+      c =>
+        new UartTopUnitTester(c, baudrate, clockFreq) {
 
-        val b = new scala.util.control.Breaks
-        val txData = Range(0, 3).map(_ => floor(random * 256).toInt)
+          val b = new scala.util.control.Breaks
+          val txData = Range(0, 3).map(_ => floor(random * 256).toInt)
 
-        idle()
+          idle()
 
-        for (data <- txData) {
-          while ((read(stat, 0x4, cmp = false) & 0x4) == 0x0) {
-            step(1)
+          for (data <- txData) {
+            while ((read(stat, 0x4, cmp = false) & 0x4) == 0x0) {
+              step(1)
+            }
+            read(stat, 0x4) // TxFifoEmpty
+            write(txFifo, data)
+            receive(data)
           }
-          read(stat, 0x4) // TxFifoEmpty
-          write(txFifo, data)
-          receive(data)
         }
-      }
-    } should be (true)
+    }
   }
 }
 
@@ -307,26 +315,27 @@ class UartRxTester extends BaseTester {
     val baudrate = 500000
     val clockFreq = 1
 
-    Driver.execute(args, () => new UartTop(baudrate, clockFreq)) {
-      c => new UartTopUnitTester(c, baudrate, clockFreq) {
+    test(new UartTop(baudrate, clockFreq)).runPeekPoke {
+      c =>
+        new UartTopUnitTester(c, baudrate, clockFreq) {
 
-        //val rxData = Range(0, 100).map(_ => floor(random * 256).toInt)
-        val rxData = Range(0, 25)
+          //val rxData = Range(0, 100).map(_ => floor(random * 256).toInt)
+          val rxData = Range(0, 25)
 
-        idle()
+          idle()
 
-        for (data <- rxData) {
-          send(data)
+          for (data <- rxData) {
+            send(data)
 
-          // wait data receive
-          while ((read(stat, 0x4, cmp=false) & 0x1) == 0x0) {
-            step(1)
+            // wait data receive
+            while ((read(stat, 0x4, cmp = false) & 0x1) == 0x0) {
+              step(1)
+            }
+            read(stat, 0x5) // TxFifoEmpty / RxDataValid
+            read(rxFifo, data)
           }
-          read(stat, 0x5) // TxFifoEmpty / RxDataValid
-          read(rxFifo, data)
         }
-      }
-    } should be (true)
+    }
   }
 
   it should s"ボーレート／クロック周波数を変更しても適切に受信できる [$dutName-rx-100]" in {
@@ -339,25 +348,26 @@ class UartRxTester extends BaseTester {
     val baudrate = 9600
     val clockFreq = 100
 
-    Driver.execute(args, () => new UartTop(baudrate, clockFreq)) {
-      c => new UartTopUnitTester(c, baudrate, clockFreq) {
+    test(new UartTop(baudrate, clockFreq)).runPeekPoke {
+      c =>
+        new UartTopUnitTester(c, baudrate, clockFreq) {
 
-        //val rxData = Range(0, 100).map(_ => floor(random * 256).toInt)
-        val rxData = Range(0, 2)
+          //val rxData = Range(0, 100).map(_ => floor(random * 256).toInt)
+          val rxData = Range(0, 2)
 
-        idle()
+          idle()
 
-        for (data <- rxData) {
-          send(data)
+          for (data <- rxData) {
+            send(data)
 
-          // wait data receive
-          while ((read(stat, 0x4, cmp=false) & 0x1) == 0x0) {
-            step(1)
+            // wait data receive
+            while ((read(stat, 0x4, cmp = false) & 0x1) == 0x0) {
+              step(1)
+            }
+            read(stat, 0x5) // TxFifoEmpty / RxDataValid
+            read(rxFifo, data)
           }
-          read(stat, 0x5) // TxFifoEmpty / RxDataValid
-          read(rxFifo, data)
         }
-      }
-    } should be (true)
+    }
   }
 }

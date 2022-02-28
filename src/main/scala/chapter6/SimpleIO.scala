@@ -27,7 +27,4 @@ class SimpleIO(p: SimpleIOParams) extends Bundle {
   val wrdata = Output(UInt(p.dataBits.W))
   val rddv = Input(Bool())
   val rddata = Input(UInt(p.dataBits.W))
-
-  override def cloneType: this.type =
-    new SimpleIO(p).asInstanceOf[this.type]
 }

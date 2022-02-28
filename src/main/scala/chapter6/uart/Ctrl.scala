@@ -14,16 +14,19 @@ import scala.math.{pow, round}
   * UARTの方向
   */
 sealed trait UartDirection
+
 case object UartTx extends UartDirection
+
 case object UartRx extends UartDirection
 
 /**
   * UARTの制御モジュール
-  * @param baudrate ボーレート
+  *
+  * @param baudrate  ボーレート
   * @param clockFreq クロックの周波数(MHz)
   */
-class TxRxCtrl(baudrate: Int=9600,
-               clockFreq: Int=100) extends Module {
+class TxRxCtrl(baudrate: Int = 9600,
+               clockFreq: Int = 100) extends Module {
   val io = IO(new Bundle {
     val uart = new UartIO
     val r2c = Flipped(new CSR2CtrlIO())
@@ -43,7 +46,8 @@ class TxRxCtrl(baudrate: Int=9600,
 
 /**
   * UARTの各方向の制御モジュール
-  * @param direction UARTの送受信の方向
+  *
+  * @param direction     UARTの送受信の方向
   * @param durationCount 1bit分のカウント
   */
 class Ctrl(direction: UartDirection, durationCount: Int) extends Module {
@@ -80,26 +84,26 @@ class Ctrl(direction: UartDirection, durationCount: Int) extends Module {
   val w_fin = m_stm.io.state.stop && w_update_req
 
   // アイドル時の制御
-  when (m_stm.io.state.idle) {
-    when (w_start_req) {
+  when(m_stm.io.state.idle) {
+    when(w_start_req) {
       r_duration_ctr := initDurationCount.U
-    } .otherwise {
+    }.otherwise {
       r_duration_ctr := 0.U
     }
-  } .otherwise {
-    when (!w_update_req) {
+  }.otherwise {
+    when(!w_update_req) {
       r_duration_ctr := r_duration_ctr + 1.U
-    } .otherwise {
+    }.otherwise {
       r_duration_ctr := 0.U
     }
   }
 
   // データ処理時の制御
-  when (m_stm.io.state.data) {
-    when (w_update_req) {
+  when(m_stm.io.state.data) {
+    when(w_update_req) {
       r_bit_idx := r_bit_idx + 1.U
     }
-  } .otherwise {
+  }.otherwise {
     r_bit_idx := 0.U
   }
 
@@ -119,11 +123,11 @@ class Ctrl(direction: UartDirection, durationCount: Int) extends Module {
       val reg = io.reg.asInstanceOf[FIFOWrIO[UInt]]
       val r_rx_data = RegInit(0.U)
 
-      when (m_stm.io.state.idle && w_start_req) {
+      when(m_stm.io.state.idle && w_start_req) {
         r_rx_data := 0.U
-      } .elsewhen (m_stm.io.state.data) {
-        when (w_update_req) {
-          r_rx_data := r_rx_data | (io.uart << r_bit_idx)
+      }.elsewhen(m_stm.io.state.data) {
+        when(w_update_req) {
+          r_rx_data := r_rx_data | (io.uart << r_bit_idx).asUInt
         }
       }
       reg.enable := w_fin
@@ -168,27 +172,27 @@ class CtrlStateMachine extends Module {
   val r_stm = RegInit(CtrlState.sIdle)
 
   // ステートマシンの実装
-  switch (r_stm) {
-    is (CtrlState.sIdle) {
-      when (io.start_req) {
+  switch(r_stm) {
+    is(CtrlState.sIdle) {
+      when(io.start_req) {
         r_stm := CtrlState.sStart
       }
     }
 
-    is (CtrlState.sStart) {
-      when (io.data_req) {
+    is(CtrlState.sStart) {
+      when(io.data_req) {
         r_stm := CtrlState.sData
       }
     }
 
-    is (CtrlState.sData) {
-      when (io.stop_req) {
+    is(CtrlState.sData) {
+      when(io.stop_req) {
         r_stm := CtrlState.sStop
       }
     }
 
-    is (CtrlState.sStop) {
-      when (io.fin) {
+    is(CtrlState.sStop) {
+      when(io.fin) {
         r_stm := CtrlState.sIdle
       }
     }
