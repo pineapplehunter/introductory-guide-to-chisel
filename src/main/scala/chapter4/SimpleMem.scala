@@ -3,10 +3,7 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
-
 import chisel3.util.experimental.loadMemoryFromFile
-import firrtl.annotations.MemoryLoadFileType
 
 /**
   * Element型を使ったシンプルなメモリのサンプル
@@ -24,7 +21,7 @@ class SimpleMem extends Module {
   loadMemoryFromFile(m_mem, "src/main/resources/simple_mem_data")
 
   // ライト
-  when (io.wren) {
+  when(io.wren) {
     // 通常のライトなら以下のどちらでもOK
     m_mem(io.addr) := io.wrdata
     m_mem.write(io.addr, io.wrdata)

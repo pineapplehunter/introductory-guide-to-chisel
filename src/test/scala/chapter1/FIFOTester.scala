@@ -5,12 +5,12 @@ package chapter1
 import chiseltest.ChiselScalatestTester
 import chiseltest.iotesters.PeekPokeTester
 import org.scalatest.flatspec.AnyFlatSpec
-import test_util.BaseTester
 
 import scala.math.{floor, random}
 
 /**
   * FIFOの単体テストクラス
+  *
   * @param c FIFOモジュールのインスタンス
   */
 class FIFOUnitTester(c: FIFO) extends PeekPokeTester(c) {
@@ -26,6 +26,7 @@ class FIFOUnitTester(c: FIFO) extends PeekPokeTester(c) {
 
   /**
     * FIFOにデータを書き込む
+    *
     * @param data データ
     */
   def push(data: BigInt): Unit = {
@@ -36,6 +37,7 @@ class FIFOUnitTester(c: FIFO) extends PeekPokeTester(c) {
 
   /**
     * FIFOのデータを読みだし、期待値と比較
+    *
     * @param exp 期待値
     */
   def pop(exp: BigInt): Unit = {
@@ -46,8 +48,9 @@ class FIFOUnitTester(c: FIFO) extends PeekPokeTester(c) {
 
   /**
     * プッシュとポップを同時に行う
+    *
     * @param data 設定するデータ
-    * @param exp 期待値
+    * @param exp  期待値
     */
   def pushAndPop(data: BigInt, exp: BigInt): Unit = {
     expect(c.io.rd.data, exp)
@@ -74,7 +77,7 @@ class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
       "-tgvo=on"
     )
 
-    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c) {
       val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
 
       expect(c.io.rd.empty, true)
@@ -95,7 +98,7 @@ class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
       "-tgvo=on"
     )
 
-    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c) {
       val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
 
       // data set
@@ -122,7 +125,7 @@ class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
       "-tgvo=on"
     )
 
-    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c) {
       val txData = Range(0, 128).map(_ => floor(random * 256).toInt)
       expect(c.io.dbg.get.r_data_ctr, 0x0)
       push(txData(0))
@@ -144,7 +147,7 @@ class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
       "-tgvo=on"
     )
 
-    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c){
+    test(new FIFO(dataBits, depth, true)).runPeekPoke(c => new FIFOUnitTester(c) {
       val txData = Range(0, 17).map(_ => floor(random * 256).toInt)
 
       for ((data, ptr) <- txData.zipWithIndex) {

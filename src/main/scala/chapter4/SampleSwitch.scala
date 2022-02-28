@@ -3,8 +3,8 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
 import chisel3.experimental.ChiselEnum
+import chisel3.util._
 
 /**
   * Switch ~ Isのサンプル
@@ -19,6 +19,7 @@ class SampleSwitch extends Module {
   // ChiselのEnum
   // こちらはUIntの値を持つ
   val sIdle :: sRun :: Nil = Enum(2)
+  val r_state = RegInit(State.sIdle)
 
   // Chisel3.2.0で導入されたChiselEnum（要import）
   // objectになるため、スコープを別にできる
@@ -28,15 +29,13 @@ class SampleSwitch extends Module {
     val sRun = Value(2.U)
   }
 
-  val r_state = RegInit(State.sIdle)
-
-  switch (r_state) {
-    is (State.sIdle) {
+  switch(r_state) {
+    is(State.sIdle) {
       r_state := State.sRun
       io.out_state := 0.U
     }
-    is (State.sRun) {
-      when (io.stop) {
+    is(State.sRun) {
+      when(io.stop) {
         r_state := State.sIdle
       }
     }

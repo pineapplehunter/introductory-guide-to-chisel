@@ -6,7 +6,9 @@ import chisel3._
 import chisel3.util._
 
 sealed trait Direction
+
 case object TX extends Direction
+
 case object RX extends Direction
 
 class TXIF() extends Bundle {

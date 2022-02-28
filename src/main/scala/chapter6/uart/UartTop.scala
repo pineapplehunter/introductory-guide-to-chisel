@@ -2,11 +2,8 @@
 
 package chapter6.uart
 
-import chisel3._
-import chisel3.util._
 import chapter6.{SimpleIO, SimpleIOParams}
-
-import scala.math.{pow, round}
+import chisel3._
 
 /**
   * UARTのIOクラス
@@ -17,15 +14,16 @@ class UartIO extends Bundle {
 }
 
 class UartTopIO(p: SimpleIOParams)
-               (implicit debug: Boolean = false)extends Bundle {
+               (implicit debug: Boolean = false) extends Bundle {
   val mbus = Flipped(new SimpleIO(p))
-  val uart= new UartIO
+  val uart = new UartIO
   val dbg = if (debug) Some(new CSRDebugIO) else None
 }
 
 /**
   * Uartのトップモジュール
-  * @param baudrate ボーレート
+  *
+  * @param baudrate  ボーレート
   * @param clockFreq クロックの周波数(MHz)
   */
 class UartTop(baudrate: Int, clockFreq: Int) extends Module {

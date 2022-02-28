@@ -3,12 +3,11 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
 
 /**
- * Regを使ったサンプル
- * 処理自体は入力信号"in_***"を１サイクル遅延させるだけの処理
- */
+  * Regを使ったサンプル
+  * 処理自体は入力信号"in_***"を１サイクル遅延させるだけの処理
+  */
 class SampleReg extends Module {
   val io = IO(new Bundle {
     val in_bool = Input(Bool())
@@ -19,7 +18,7 @@ class SampleReg extends Module {
     val out_sint = Output(SInt(8.W))
   })
 
-  val r_in_bool = Reg(Bool())    // Bool型のレジスタ
+  val r_in_bool = Reg(Bool()) // Bool型のレジスタ
   val r_in_uint = Reg(UInt(8.W)) // UInt型のレジスタ
   val r_in_sint = Reg(SInt(8.W)) // SInt型のレジスタ
 
@@ -33,9 +32,9 @@ class SampleReg extends Module {
 }
 
 /**
- * RegInitを使ったサンプル
- * 処理自体は入力信号"in_***"を１サイクル遅延させるだけの処理
- */
+  * RegInitを使ったサンプル
+  * 処理自体は入力信号"in_***"を１サイクル遅延させるだけの処理
+  */
 class SampleRegInit extends Module {
   val io = IO(new Bundle {
     val in_bool = Input(Bool())
@@ -46,8 +45,8 @@ class SampleRegInit extends Module {
     val out_sint = Output(SInt(8.W))
   })
 
-  val r_in_bool = RegInit(false.B)   // Bool型のレジスタ
-  val r_in_uint = RegInit(100.U)     // "1000"で初期化
+  val r_in_bool = RegInit(false.B) // Bool型のレジスタ
+  val r_in_uint = RegInit(100.U) // "1000"で初期化
   val r_in_sint = RegInit(-1.S(8.W)) // "-1"で初期化
 
   r_in_bool := io.in_bool
@@ -60,9 +59,9 @@ class SampleRegInit extends Module {
 }
 
 /**
- * RegNextを使ったサンプル
- * 処理自体は入力信号"in_***"を１サイクル遅延させるだけの処理
- */
+  * RegNextを使ったサンプル
+  * 処理自体は入力信号"in_***"を１サイクル遅延させるだけの処理
+  */
 class SampleRegNext extends Module {
   val io = IO(new Bundle {
     val in_bool = Input(Bool())

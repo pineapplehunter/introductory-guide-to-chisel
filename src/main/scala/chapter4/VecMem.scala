@@ -4,7 +4,6 @@ package chapter4
 
 import chisel3._
 import chisel3.util._
-
 import chisel3.util.experimental.loadMemoryFromFile
 
 /**
@@ -24,7 +23,7 @@ class VecMem extends Module {
   loadMemoryFromFile(m_mem, "src/main/resources/vec_mem_data")
 
   // ライト
-  when (io.wren) {
+  when(io.wren) {
     // 通常のライトもOK：この場合はmask=1'b1で固定
     //m_mem.write(io.addr, io.wrdata)
     // マスク付きのライトを使用

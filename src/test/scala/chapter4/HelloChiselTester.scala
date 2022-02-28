@@ -2,11 +2,11 @@
 
 package chapter4
 
-import chiseltest.{ChiselScalatestTester, VerilatorBackendAnnotation}
 import chiseltest.iotesters.PeekPokeTester
+import chiseltest.{ChiselScalatestTester, VerilatorBackendAnnotation}
 import org.scalatest.flatspec.AnyFlatSpec
 
-import math.pow
+import scala.math.pow
 
 /**
   * HelloChiselのテストモジュール

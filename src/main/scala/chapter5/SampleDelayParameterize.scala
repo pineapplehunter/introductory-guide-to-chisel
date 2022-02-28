@@ -3,10 +3,10 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
 
 /**
   * 回路の中身を変更するサンプル
+  *
   * @param hasFF 入力を1cycle遅延させるかを選択するフラグ
   */
 class SampleDelayParameterize(hasFF: Boolean = false) extends Module {
@@ -22,11 +22,12 @@ class SampleDelayParameterize(hasFF: Boolean = false) extends Module {
 
 /**
   * SampleDelayParameterizeをインスタンスするモジュール
+  *
   * @param hasFF1
   * @param hasFF2
   */
 class SampleDelayParameterizeTop
-  (hasFF1: Boolean, hasFF2: Boolean) extends Module {
+(hasFF1: Boolean, hasFF2: Boolean) extends Module {
   val io = IO(new Bundle {
     val in1 = Input(UInt(8.W))
     val out1 = Output(UInt(8.W))

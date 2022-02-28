@@ -7,6 +7,7 @@ import chisel3.util._
 
 /**
   * BlackBoxInlineを使ったサンプル
+  *
   * @param bits ビット幅
   */
 class BlackBoxAdd(bits: Int) extends BlackBox with HasBlackBoxInline {

@@ -7,6 +7,7 @@ import chisel3.util._
 
 /**
   * MixedVecを使ったパラメタライズのサンプル用ポート
+  *
   * @param dataBits
   */
 class ParameterizeEachPortsIO(dataBits: Int) extends Bundle {

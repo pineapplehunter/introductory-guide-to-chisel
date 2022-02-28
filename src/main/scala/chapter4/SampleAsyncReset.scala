@@ -3,7 +3,6 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
 
 /**
   * 非同期リセットのサンプル
@@ -17,7 +16,9 @@ class SampleAsyncReset extends Module {
   val w_async_reset = reset.asAsyncReset()
 
   // 非同期リセットをwithResetで指定
-  val r_out = withReset(w_async_reset) { RegInit(false.B) }
+  val r_out = withReset(w_async_reset) {
+    RegInit(false.B)
+  }
 
   r_out := 1.U
 

@@ -3,7 +3,6 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
 
 class SampleChiselTypeOf1(dataBits: Int) extends Module {
 
@@ -18,5 +17,7 @@ class SampleChiselTypeOf1(dataBits: Int) extends Module {
 
   io.out := 0.U
 
-  when (io.sel) { io.out := io.in }
+  when(io.sel) {
+    io.out := io.in
+  }
 }

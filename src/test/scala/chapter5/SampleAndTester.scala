@@ -18,16 +18,16 @@ class SampleAndUnitTester(c: SampleAnd) extends PeekPokeTester(c) {
   val io = c.io
 
   /**
-   * 入力端子にデータをセット
-   */
+    * 入力端子にデータをセット
+    */
   def set(a: Int, b: Int): Unit = {
     poke(io.a, a)
     poke(io.b, b)
   }
 
   /**
-   * 期待値と出力を比較
-   */
+    * 期待値と出力を比較
+    */
   def compare(exp: Int): Unit = expect(io.c, exp, msg = f"(raw, exp) = (${peek(io.c)}, $exp)")
 }
 

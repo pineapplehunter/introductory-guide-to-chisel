@@ -1,10 +1,11 @@
 // See README.md for license details.
 
-import math.pow
 import chapter5.{RX, TX}
 import chapter6.SimpleIOParams
 import chisel3._
 import chisel3.stage.ChiselStage
+
+import scala.math.pow
 
 /**
   * Stringでもらったクラスのパスからインスタンスを生成する

@@ -2,11 +2,10 @@
 
 package chapter6.uart
 
-import chisel3._
-import chisel3.util._
-
 import chapter5.{FIFO, FIFORdIO, FIFOWrIO}
 import chapter6.{SimpleIO, SimpleIOParams}
+import chisel3._
+import chisel3.util._
 
 /**
   * CSRのレジスタアドレス
@@ -14,8 +13,8 @@ import chapter6.{SimpleIO, SimpleIOParams}
 object RegInfo {
   val rxFifo = 0x0 // RX FIFO
   val txFifo = 0x4 // TX FIFO
-  val stat = 0x8   // Status
-  val ctrl = 0xc   // Control
+  val stat = 0x8 // Status
+  val ctrl = 0xc // Control
 }
 
 /**
@@ -23,6 +22,7 @@ object RegInfo {
   */
 abstract class UartReg extends Bundle {
   def write(data: UInt): Unit
+
   def read(): UInt
 }
 
@@ -42,7 +42,7 @@ class StatReg extends UartReg with IgnoreSeqInBundle {
 
   //
   def write(v: UInt): Unit = {
-    bitOrder.zip(v.asBools()).foreach{ case(r, b) => r := b }
+    bitOrder.zip(v.asBools()).foreach { case (r, b) => r := b }
   }
 
   def read(): UInt = Cat(bitOrder)
@@ -67,7 +67,8 @@ class CSR2CtrlIO extends Bundle {
 
 /**
   * CSR部のIOクラス
-  * @param p CSRブロックのパラメータ
+  *
+  * @param p     CSRブロックのパラメータ
   * @param debug Trueでデバッグ用のIOが有効になる
   */
 class CSRIO(p: SimpleIOParams)(implicit debug: Boolean = false) extends Bundle {
@@ -78,7 +79,8 @@ class CSRIO(p: SimpleIOParams)(implicit debug: Boolean = false) extends Bundle {
 
 /**
   * レジスタブロック
-  * @param sp IOの設定
+  *
+  * @param sp    IOの設定
   * @param debug デバッグ出力のON/OFF
   */
 class CSR(sp: SimpleIOParams)(implicit debug: Boolean = false) extends Module {

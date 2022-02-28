@@ -7,7 +7,8 @@ import chisel3.util._
 
 /**
   * ウォッチドッグタイマー
-  * @param limit シミュレーションのMAXサイクル数
+  *
+  * @param limit   シミュレーションのMAXサイクル数
   * @param abortEn timeout時にassertでシミュレーションを終了するかどうか
   */
 class WDT(limit: Int, abortEn: Boolean) extends Module {
@@ -17,7 +18,7 @@ class WDT(limit: Int, abortEn: Boolean) extends Module {
 
   val timer = RegInit(0.U(log2Ceil(limit).W))
 
-  when (timer =/= limit.U) {
+  when(timer =/= limit.U) {
     timer := timer + 1.U
   }
 

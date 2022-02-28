@@ -36,19 +36,6 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
   }
 
   /**
-    * Uart register write
-    *
-    * @param addr destination address
-    * @param data data to write
-    */
-  def issueWrite(addr: Int, data: Int): Unit = {
-    poke(c.io.mbus.addr, addr)
-    poke(c.io.mbus.wren, true)
-    poke(c.io.mbus.wrdata, data)
-    step(1)
-  }
-
-  /**
     * レジスタライト
     *
     * @param addr レジスタアドレス
@@ -63,6 +50,18 @@ class UartTopUnitTester(c: UartTop, baudrate: Int, clockFreq: Int)(implicit debu
     step(1)
   }
 
+  /**
+    * Uart register write
+    *
+    * @param addr destination address
+    * @param data data to write
+    */
+  def issueWrite(addr: Int, data: Int): Unit = {
+    poke(c.io.mbus.addr, addr)
+    poke(c.io.mbus.wren, true)
+    poke(c.io.mbus.wrdata, data)
+    step(1)
+  }
 
   /**
     * レジスタリード

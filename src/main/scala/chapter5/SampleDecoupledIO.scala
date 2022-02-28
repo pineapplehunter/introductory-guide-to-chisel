@@ -10,7 +10,7 @@ import chisel3.util._
   */
 class SampleDecoupledIO extends Module {
   val io = IO(new Bundle {
-    val out = DecoupledIO(UInt(8.W))    // UIntのオブジェクトを渡す
+    val out = DecoupledIO(UInt(8.W)) // UIntのオブジェクトを渡す
     val out2 = DecoupledIO(new Bundle { // Bundleのオブジェクトを渡す
       val a = Bool()
       val b = UInt(8.W)

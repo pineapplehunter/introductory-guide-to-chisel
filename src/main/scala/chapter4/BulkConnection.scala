@@ -3,7 +3,6 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
 
 /**
   * バルクコネクション確認用のクラス
@@ -25,7 +24,7 @@ class RegMod extends Module {
 
   val r_reg = RegInit(0.U(8.W))
 
-  when (io.wren) {
+  when(io.wren) {
     r_reg := io.wrdata
   }
 

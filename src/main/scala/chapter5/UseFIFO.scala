@@ -3,7 +3,6 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
 
 /**
   * FIFO リード側 I/O

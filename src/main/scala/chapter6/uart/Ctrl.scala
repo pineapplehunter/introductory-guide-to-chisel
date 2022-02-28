@@ -2,11 +2,10 @@
 
 package chapter6.uart
 
+import chapter5.{FIFORdIO, FIFOWrIO}
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
-
-import chapter5.{FIFORdIO, FIFOWrIO}
 
 import scala.math.{pow, round}
 
@@ -160,6 +159,7 @@ class CtrlStateMachine extends Module {
       val stop = Output(Bool())
     })
   })
+  val r_stm = RegInit(CtrlState.sIdle)
 
   // ステート用のEnum
   object CtrlState extends ChiselEnum {
@@ -168,8 +168,6 @@ class CtrlStateMachine extends Module {
     val sData = Value
     val sStop = Value
   }
-
-  val r_stm = RegInit(CtrlState.sIdle)
 
   // ステートマシンの実装
   switch(r_stm) {

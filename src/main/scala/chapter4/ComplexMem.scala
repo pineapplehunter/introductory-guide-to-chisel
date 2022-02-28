@@ -3,13 +3,11 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
-
 import chisel3.util.experimental.loadMemoryFromFile
 
 /**
- * ComplexMem用のデータ型
- */
+  * ComplexMem用のデータ型
+  */
 class MemData extends Bundle {
   val a = UInt(16.W)
   val b = SInt(16.W)
@@ -18,8 +16,8 @@ class MemData extends Bundle {
 }
 
 /**
- * Bundleを使ったメモリ
- */
+  * Bundleを使ったメモリ
+  */
 class ComplexMem extends Module {
   val io = IO(new Bundle {
     val addr = Input(UInt(4.W))
@@ -32,7 +30,7 @@ class ComplexMem extends Module {
 
   loadMemoryFromFile(m_mem, "src/main/resources/mem_data")
 
-  when (io.wren) {
+  when(io.wren) {
     m_mem.write(io.addr, io.wrdata)
   }
 

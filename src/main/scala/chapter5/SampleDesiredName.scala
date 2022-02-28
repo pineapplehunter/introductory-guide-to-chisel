@@ -7,9 +7,10 @@ import chisel3.util._
 
 /**
   * desiredNameのサンプル
+  *
   * @param n 加算する数
   */
-class AddN(n : Int) extends Module {
+class AddN(n: Int) extends Module {
   val io = IO(new Bundle {
     val in = Input(UInt(8.W))
     val out = Output(UInt(8.W))
@@ -17,6 +18,7 @@ class AddN(n : Int) extends Module {
 
   /**
     * desiredName
+    *
     * @return 元の名前に"equalTo"n""を追加
     */
   //override def desiredName: String = super.desiredName + f"equalTo$n%02d"

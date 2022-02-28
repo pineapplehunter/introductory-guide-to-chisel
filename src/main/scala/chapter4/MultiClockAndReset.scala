@@ -3,7 +3,6 @@
 package chapter4
 
 import chisel3._
-import chisel3.util._
 
 /**
   * 複数のクロックとリセットを使うサンプル

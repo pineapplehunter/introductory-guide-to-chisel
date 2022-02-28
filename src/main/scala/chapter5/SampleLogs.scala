@@ -2,7 +2,6 @@
 
 package chapter5
 
-import chisel3._
 import chisel3.util._
 
 /**
@@ -13,11 +12,11 @@ object SampleLogs extends App {
   for (i <- 0x1 to 0x10) {
     println(
       f"| $i%2d | " +
-      f"${log2Up(i)} | ${log2Up(i + 1)} | " +
-      f"${log2Down(i)} | ${log2Down(i + 1)} | " +
-      f"${log2Ceil(i)} | ${log2Ceil(i + 1)} | " +
-      f"${log2Floor(i)} | ${log2Floor(i + 1)} | " +
-      f"${isPow2(i)} |")
+        f"${log2Up(i)} | ${log2Up(i + 1)} | " +
+        f"${log2Down(i)} | ${log2Down(i + 1)} | " +
+        f"${log2Ceil(i)} | ${log2Ceil(i + 1)} | " +
+        f"${log2Floor(i)} | ${log2Floor(i + 1)} | " +
+        f"${isPow2(i)} |")
   }
 }
 

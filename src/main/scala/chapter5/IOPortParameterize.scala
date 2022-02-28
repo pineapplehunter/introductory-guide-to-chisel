@@ -3,11 +3,11 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
 
 /**
   * IOポートのパラメタライズ
-  * @param hasOptInput opt_inを持つかどうか
+  *
+  * @param hasOptInput  opt_inを持つかどうか
   * @param hasOptOutput opt_outを持つかどうか
   */
 class IOPortParameterize(hasOptInput: Boolean, hasOptOutput: Boolean) extends Module {

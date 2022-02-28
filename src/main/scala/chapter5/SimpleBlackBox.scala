@@ -39,5 +39,5 @@ class SimpleBlackBoxTop extends Module {
   * SimpleBlackBoxTopのRTL生成
   */
 object ElaborateSimpleBlackBoxTop extends App {
-  (new ChiselStage).emitVerilog( new SimpleBlackBoxTop)
+  (new ChiselStage).emitVerilog(new SimpleBlackBoxTop)
 }

@@ -3,21 +3,22 @@
 package chapter6
 
 import chisel3._
-import chisel3.util._
 
 /**
   * SimpleIOクラスのパラメータ用クラス
+  *
   * @param addrBits アドレスのビット幅
   * @param dataBits データのビット幅
   */
 case class SimpleIOParams
-  (
-   addrBits: Int = 4,
-   dataBits: Int = 8
-  )
+(
+  addrBits: Int = 4,
+  dataBits: Int = 8
+)
 
 /**
   * SimpleIO
+  *
   * @param p IOパラメータ
   */
 class SimpleIO(p: SimpleIOParams) extends Bundle {

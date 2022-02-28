@@ -3,7 +3,6 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
 
 class SampleDontTouch(useDontTouch: Boolean = false) extends Module {
   val io = IO(new Bundle {
@@ -13,7 +12,7 @@ class SampleDontTouch(useDontTouch: Boolean = false) extends Module {
 
   for ((in, out) <- io.in zip io.out) {
     val r1 = if (useDontTouch) dontTouch(WireDefault(in))
-             else              WireDefault(in)
+    else WireDefault(in)
     out := r1
   }
 }

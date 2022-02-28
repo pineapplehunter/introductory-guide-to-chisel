@@ -6,6 +6,7 @@ import chisel3._
 
 /**
   * 回路の中身を変更するサンプル
+  *
   * @param delayCyc 何サイクル遅延させるかを選択するパラメータ
   */
 class SampleNDelayParameterize1(delayCyc: Int = 1) extends Module {
@@ -36,6 +37,7 @@ class SampleNDelayParameterize1(delayCyc: Int = 1) extends Module {
 
 /**
   * 回路の中身を変更するサンプル（高階関数使用版）
+  *
   * @param delayCyc 何サイクル遅延させるかを選択するパラメータ
   */
 class SampleNDelayParameterize2(delayCyc: Int = 1) extends Module {
@@ -62,11 +64,12 @@ class SampleNDelayParameterize2(delayCyc: Int = 1) extends Module {
 
 /**
   * SampleDelayParameterizeをインスタンスするモジュール
+  *
   * @param delayCyc1 何サイクル遅延させるかを選択するパラメータ
   * @param delayCyc2 何サイクル遅延させるかを選択するパラメータ
   */
 class SampleNDelayParameterizeTop
-  (delayCyc1: Int, delayCyc2: Int) extends Module {
+(delayCyc1: Int, delayCyc2: Int) extends Module {
   val io = IO(new Bundle {
     val in1 = Input(UInt(8.W))
     val out1 = Output(UInt(8.W))

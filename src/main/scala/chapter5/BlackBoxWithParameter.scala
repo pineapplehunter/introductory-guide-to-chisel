@@ -3,8 +3,7 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
-import chisel3.experimental.{IntParam, DoubleParam, StringParam, RawParam}
+import chisel3.experimental.{DoubleParam, IntParam, RawParam, StringParam}
 
 /**
   * Paramを使った

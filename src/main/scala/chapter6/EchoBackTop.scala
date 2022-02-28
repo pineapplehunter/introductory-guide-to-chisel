@@ -2,16 +2,15 @@
 
 package chapter6
 
-import chisel3._
-import chisel3.util._
-
-import chapter6.uart._
 import chapter6.sequencer._
+import chapter6.uart._
+import chisel3._
 
 /**
   * EchoBackTop
-  * @param p SimpleIOのパラメータ
-  * @param baudrate ボーレート
+  *
+  * @param p         SimpleIOのパラメータ
+  * @param baudrate  ボーレート
   * @param clockFreq クロック周波数(MHz)
   */
 class EchoBackTop(p: SimpleIOParams, baudrate: Int = 9600, clockFreq: Int = 100) extends Module {

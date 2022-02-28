@@ -3,10 +3,10 @@
 package chapter5
 
 import chisel3._
-import chisel3.util._
 
 /**
   * ビット幅のパラメタライズのサンプル
+  *
   * @param bits データのビット幅
   */
 class SampleBitWidthParameterize(bits: Int) extends Module {
@@ -20,6 +20,7 @@ class SampleBitWidthParameterize(bits: Int) extends Module {
 
 /**
   * SapmleBitWidthParameterizeをインスタンスするトップ階層
+  *
   * @param bits1 m_sbwp1のデータのビット幅
   * @param bits2 m_sbwp1のデータのビット幅
   */
