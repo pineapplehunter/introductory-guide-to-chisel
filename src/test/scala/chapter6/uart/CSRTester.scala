@@ -3,8 +3,10 @@
 package chapter6.uart
 
 import chapter6.SimpleIOParams
+import chiseltest.ChiselScalatestTester
 import chiseltest.iotesters.PeekPokeTester
-import test_util.BaseTester
+import chiseltest.simulator.WriteVcdAnnotation
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.math.{floor, random}
 
@@ -21,8 +23,8 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
     * @param cycle アイドルのサイクル数
     */
   def idle(cycle: Int = 1): Unit = {
-    poke(c.io.sram.wren, false)
-    poke(c.io.sram.rden, false)
+    poke(c.csrIo.simpleIO.writeEnable, false)
+    poke(c.csrIo.simpleIO.readEnable, false)
     step(cycle)
   }
 
@@ -33,9 +35,9 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
     * @param data ライトデータ
     */
   def hwrite(addr: Int, data: Int): Unit = {
-    poke(c.io.sram.addr, addr)
-    poke(c.io.sram.wren, true)
-    poke(c.io.sram.wrdata, data)
+    poke(c.csrIo.simpleIO.address, addr)
+    poke(c.csrIo.simpleIO.writeEnable, true)
+    poke(c.csrIo.simpleIO.writeData, data)
     step(1)
   }
 
@@ -46,11 +48,11 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
     * @param exp  リードの期待値
     */
   def hread(addr: Int, exp: Int): Unit = {
-    poke(c.io.sram.addr, addr)
-    poke(c.io.sram.rden, true)
+    poke(c.csrIo.simpleIO.address, addr)
+    poke(c.csrIo.simpleIO.readEnable, true)
     step(1)
-    expect(c.io.sram.rddv, true)
-    expect(c.io.sram.rddata, exp)
+    expect(c.csrIo.simpleIO.readDataValid, true)
+    expect(c.csrIo.simpleIO.readData, exp)
   }
 
   /**
@@ -59,10 +61,10 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
     * @param data register write data
     */
   def uwrite(data: Int): Unit = {
-    poke(c.io.r2c.rx.enable, true)
-    poke(c.io.r2c.rx.data, data)
+    poke(c.csrIo.csr2control.rx.enable, true)
+    poke(c.csrIo.csr2control.rx.data, data)
     step(1)
-    poke(c.io.r2c.rx.enable, false)
+    poke(c.csrIo.csr2control.rx.enable, false)
     step(1)
   }
 
@@ -70,7 +72,7 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
     * 送信FIFOのenable発行
     */
   def txfifoAck(): Unit = {
-    poke(c.io.r2c.tx.enable, true)
+    poke(c.csrIo.csr2control.tx.enable, true)
     step(1)
   }
 }
@@ -78,7 +80,7 @@ class CSRUnitTester(c: CSR) extends PeekPokeTester(c) {
 /**
   * CSRのテストクラス
   */
-class CSRTester extends BaseTester {
+class CSRTester extends AnyFlatSpec with ChiselScalatestTester {
 
   val dutName = "CSR"
 
@@ -87,13 +89,6 @@ class CSRTester extends BaseTester {
   val sp = SimpleIOParams()
 
   it should "送信FIFOにライトできる" in {
-
-    val outDir = dutName + "-txfifo"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
     test(new CSR(sp)(true)).runPeekPoke {
       c =>
         new CSRUnitTester(c) {
@@ -102,49 +97,36 @@ class CSRTester extends BaseTester {
           idle()
           for (d <- txData) {
             hwrite(RegInfo.txFifo, d)
-            expect(c.io.dbg.get.tx_fifo, d)
+            expect(c.csrIo.dbg.get.txFifo, d)
           }
         }
     }
   }
 
   it should "送信FIFOにライトするとtx_emptyビットが0に遷移する" in {
-
-    val outDir = dutName + "-txfifo-txempty"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
-    test(new CSR(sp)(true)).runPeekPoke {
+    test(new CSR(sp)(true)).withAnnotations(Seq(WriteVcdAnnotation)).runPeekPoke {
       c =>
         new CSRUnitTester(c) {
           val txData = 0xff
 
           idle()
-          expect(c.io.r2c.tx.empty, true)
+          expect(c.csrIo.csr2control.tx.empty, true)
           hwrite(RegInfo.txFifo, txData)
-          expect(c.io.r2c.tx.empty, false)
+          expect(c.csrIo.csr2control.tx.empty, false)
         }
     }
   }
 
   it should "be able to read Stat register from Host" in {
-    val outDir = dutName + "-stat-txempty"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
-    test(new CSR(sp)(true)).runPeekPoke {
+    test(new CSR(sp)(true)).withAnnotations(Seq(WriteVcdAnnotation)).runPeekPoke {
       c =>
         new CSRUnitTester(c) {
           val txData = 0xff
 
           idle()
-          expect(c.io.r2c.tx.empty, true)
+          expect(c.csrIo.csr2control.tx.empty, true)
           hwrite(RegInfo.txFifo, txData)
-          expect(c.io.r2c.tx.empty, false)
+          expect(c.csrIo.csr2control.tx.empty, false)
         }
     }
   }
@@ -158,13 +140,7 @@ class CSRTester extends BaseTester {
   behavior of "RxFifo"
 
   it should "UARTの制御ブロック側から受信FIFOにライトできる" in {
-    val outDir = dutName + "-rxfifo-write"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
-    test(new CSR(sp)(true)).runPeekPoke {
+    test(new CSR(sp)(true)).withAnnotations(Seq(WriteVcdAnnotation)).runPeekPoke {
       c =>
         new CSRUnitTester(c) {
           val txData = Range(0, 10).map(_ => floor(random * 256).toInt)
@@ -172,20 +148,13 @@ class CSRTester extends BaseTester {
           idle()
           for (d <- txData) {
             uwrite(d)
-            expect(c.io.dbg.get.rx_fifo, txData(0))
+            expect(c.csrIo.dbg.get.rxFifo, txData(0))
           }
         }
     }
   }
 
   it should "ホスト側からは受信FIFOをリードできる" in {
-
-    val outDir = dutName + "-rxfifo-read"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
     test(new CSR(sp)(true)).runPeekPoke {
       c =>
         new CSRUnitTester(c) {
@@ -194,7 +163,7 @@ class CSRTester extends BaseTester {
           idle()
           for (d <- txData) {
             hwrite(RegInfo.txFifo, d)
-            expect(c.io.dbg.get.tx_fifo, d)
+            expect(c.csrIo.dbg.get.txFifo, d)
           }
         }
     }

@@ -7,6 +7,7 @@ import chiseltest.iotesters.PeekPokeTester
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.math.{floor, random}
+import chapter1.FIFO
 
 /**
   * FIFOの単体テストクラス

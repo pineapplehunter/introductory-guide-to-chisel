@@ -20,8 +20,8 @@ class FIFOUnitTester[T <: Data](c: FIFO[T]) extends PeekPokeTester(c) {
     * アイドル
     */
   def idle(): Unit = {
-    poke(c.io.rd.enable, false)
-    poke(c.io.wr.enable, false)
+    poke(c.io.read.enable, false)
+    poke(c.io.write.enable, false)
     step(1)
   }
 
@@ -31,8 +31,8 @@ class FIFOUnitTester[T <: Data](c: FIFO[T]) extends PeekPokeTester(c) {
     * @param data データ
     */
   def push(data: BigInt): Unit = {
-    poke(c.io.wr.enable, true)
-    poke(c.io.wr.data.asUInt(), data)
+    poke(c.io.write.enable, true)
+    poke(c.io.write.data.asUInt(), data)
     step(1)
   }
 
@@ -42,8 +42,8 @@ class FIFOUnitTester[T <: Data](c: FIFO[T]) extends PeekPokeTester(c) {
     * @param exp 期待値
     */
   def pop(exp: BigInt): Unit = {
-    expect(c.io.rd.data.asUInt(), exp)
-    poke(c.io.rd.enable, true)
+    expect(c.io.read.data.asUInt(), exp)
+    poke(c.io.read.enable, true)
     step(1)
   }
 
@@ -54,10 +54,10 @@ class FIFOUnitTester[T <: Data](c: FIFO[T]) extends PeekPokeTester(c) {
     * @param exp  期待値
     */
   def pushAndPop(data: BigInt, exp: BigInt): Unit = {
-    expect(c.io.rd.data.asUInt(), exp)
-    poke(c.io.rd.enable, true)
-    poke(c.io.wr.enable, true)
-    poke(c.io.wr.data.asUInt(), data)
+    expect(c.io.read.data.asUInt(), exp)
+    poke(c.io.read.enable, true)
+    poke(c.io.write.enable, true)
+    poke(c.io.write.data.asUInt(), data)
     step(1)
   }
 }
@@ -74,11 +74,11 @@ class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
     test(new FIFO(UInt(8.W), depth, true)).runPeekPoke(c => new FIFOUnitTester(c) {
       val setData = Range(0, 16).map(_ => floor(random * 256).toInt)
 
-      expect(c.io.rd.empty, true)
+      expect(c.io.read.empty, true)
       for ((data, idx) <- setData.zipWithIndex) {
         push(data)
-        expect(c.io.rd.empty, false)
-        expect(c.io.rd.data, setData(0))
+        expect(c.io.read.empty, false)
+        expect(c.io.read.data, setData(0))
       }
       idle()
     })
@@ -97,10 +97,10 @@ class FIFOTester extends AnyFlatSpec with ChiselScalatestTester {
 
       // data set
       for (data <- setData) {
-        expect(c.io.wr.full, false)
+        expect(c.io.write.full, false)
         push(data)
       }
-      expect(c.io.wr.full, true)
+      expect(c.io.write.full, true)
       idle()
 
       // pop

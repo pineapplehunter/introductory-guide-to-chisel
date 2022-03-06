@@ -2,12 +2,10 @@
 
 package chapter6.uart
 
-import chapter5.{FIFORdIO, FIFOWrIO}
+import chapter5.{FIFOReadIO, FIFOWriteIO}
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
-
-import scala.math.{pow, round}
 
 /**
   * UARTの方向
@@ -24,23 +22,23 @@ case object UartRx extends UartDirection
   * @param baudrate  ボーレート
   * @param clockFreq クロックの周波数(MHz)
   */
-class TxRxCtrl(baudrate: Int = 9600,
-               clockFreq: Int = 100) extends Module {
+class TxRxControl(baudrate: Int = 9600,
+                  clockFreq: Int = 100_000_000) extends Module {
   val io = IO(new Bundle {
     val uart = new UartIO
-    val r2c = Flipped(new CSR2CtrlIO())
+    val csr2control = Flipped(new CSR2CtrlIO())
   })
 
-  val durationCount = round(clockFreq * pow(10, 6) / baudrate).toInt
+  val durationCount = math.round(clockFreq.toDouble / baudrate.toDouble).toInt
 
-  val m_tx_ctrl = Module(new Ctrl(UartTx, durationCount))
-  val m_rx_ctrl = Module(new Ctrl(UartRx, durationCount))
+  val txControl = Module(new Ctrl(UartTx, durationCount))
+  val rxControl = Module(new Ctrl(UartRx, durationCount))
 
-  io.uart.tx := m_tx_ctrl.io.uart
-  m_tx_ctrl.io.reg <> io.r2c.tx
+  io.uart.tx := txControl.io.uart
+  txControl.io.reg <> io.csr2control.tx
 
-  m_rx_ctrl.io.uart := io.uart.rx
-  m_rx_ctrl.io.reg <> io.r2c.rx
+  rxControl.io.uart := io.uart.rx
+  rxControl.io.reg <> io.csr2control.rx
 }
 
 /**
@@ -52,18 +50,18 @@ class TxRxCtrl(baudrate: Int = 9600,
 class Ctrl(direction: UartDirection, durationCount: Int) extends Module {
   val io = IO(new Bundle {
     val uart = direction match {
-      case UartTx => Output(UInt(1.W))
-      case UartRx => Input(UInt(1.W))
+      case UartTx => Output(Bool())
+      case UartRx => Input(Bool())
     }
     val reg = direction match {
-      case UartTx => Flipped(new FIFORdIO(UInt(8.W)))
-      case UartRx => Flipped(new FIFOWrIO(UInt(8.W)))
+      case UartTx => Flipped(new FIFOReadIO(UInt(8.W)))
+      case UartRx => Flipped(new FIFOWriteIO(UInt(8.W)))
     }
   })
 
-  val m_stm = Module(new CtrlStateMachine)
-  val r_duration_ctr = RegInit(durationCount.U)
-  val r_bit_idx = RegInit(0.U(3.W))
+  val ctrlStateMachine = Module(new CtrlStateMachine)
+  val durationCounter = RegInit(durationCount.U)
+  val bitIndex = RegInit(0.U(3.W))
 
   // 受信方向は受信した信号と半周期ずれたところで
   // データを確定させるため初期値をずらす
@@ -75,58 +73,58 @@ class Ctrl(direction: UartDirection, durationCount: Int) extends Module {
   // 動作開始のトリガはTx/Rxで異なるため
   // directionをmatch式で処理
   val w_start_req = direction match {
-    case UartTx => !io.reg.asInstanceOf[FIFORdIO[UInt]].empty
+    case UartTx => !io.reg.asInstanceOf[FIFOReadIO[UInt]].empty
     case UartRx => !io.uart
   }
 
-  val w_update_req = r_duration_ctr === (durationCount - 1).U
-  val w_fin = m_stm.io.state.stop && w_update_req
+  val w_update_req = durationCounter === (durationCount - 1).U
+  val w_fin = ctrlStateMachine.io.state.stop && w_update_req
 
   // アイドル時の制御
-  when(m_stm.io.state.idle) {
+  when(ctrlStateMachine.io.state.idle) {
     when(w_start_req) {
-      r_duration_ctr := initDurationCount.U
+      durationCounter := initDurationCount.U
     }.otherwise {
-      r_duration_ctr := 0.U
+      durationCounter := 0.U
     }
   }.otherwise {
     when(!w_update_req) {
-      r_duration_ctr := r_duration_ctr + 1.U
+      durationCounter := durationCounter + 1.U
     }.otherwise {
-      r_duration_ctr := 0.U
+      durationCounter := 0.U
     }
   }
 
   // データ処理時の制御
-  when(m_stm.io.state.data) {
+  when(ctrlStateMachine.io.state.data) {
     when(w_update_req) {
-      r_bit_idx := r_bit_idx + 1.U
+      bitIndex := bitIndex + 1.U
     }
   }.otherwise {
-    r_bit_idx := 0.U
+    bitIndex := 0.U
   }
 
   // クラスパラメータのdirectionを使って各方向の論理を実装
   direction match {
     case UartTx =>
-      val reg = io.reg.asInstanceOf[FIFORdIO[UInt]]
+      val reg = io.reg.asInstanceOf[FIFOReadIO[UInt]]
 
       io.uart := MuxCase(1.U, Seq(
-        m_stm.io.state.start -> 0.U,
-        m_stm.io.state.data -> reg.data(r_bit_idx)
+        ctrlStateMachine.io.state.start -> 0.U,
+        ctrlStateMachine.io.state.data -> reg.data(bitIndex)
       ))
 
-      reg.enable := m_stm.io.state.stop && w_update_req
+      reg.enable := ctrlStateMachine.io.state.stop && w_update_req
 
     case UartRx =>
-      val reg = io.reg.asInstanceOf[FIFOWrIO[UInt]]
+      val reg = io.reg.asInstanceOf[FIFOWriteIO[UInt]]
       val r_rx_data = RegInit(0.U)
 
-      when(m_stm.io.state.idle && w_start_req) {
+      when(ctrlStateMachine.io.state.idle && w_start_req) {
         r_rx_data := 0.U
-      }.elsewhen(m_stm.io.state.data) {
+      }.elsewhen(ctrlStateMachine.io.state.data) {
         when(w_update_req) {
-          r_rx_data := r_rx_data | (io.uart << r_bit_idx).asUInt
+          r_rx_data := r_rx_data | (io.uart << bitIndex).asUInt
         }
       }
       reg.enable := w_fin
@@ -134,10 +132,10 @@ class Ctrl(direction: UartDirection, durationCount: Int) extends Module {
   }
 
   // m_stm <-> ctrlの接続
-  m_stm.io.start_req := w_start_req
-  m_stm.io.data_req := m_stm.io.state.start && w_update_req
-  m_stm.io.stop_req := m_stm.io.state.data && w_update_req && (r_bit_idx === 7.U)
-  m_stm.io.fin := w_fin
+  ctrlStateMachine.io.start_req := w_start_req
+  ctrlStateMachine.io.data_req := ctrlStateMachine.io.state.start && w_update_req
+  ctrlStateMachine.io.stop_req := ctrlStateMachine.io.state.data && w_update_req && (bitIndex === 7.U)
+  ctrlStateMachine.io.fin := w_fin
 }
 
 /**

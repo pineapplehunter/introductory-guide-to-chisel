@@ -2,8 +2,9 @@
 
 package chapter6.uart
 
+import chiseltest.ChiselScalatestTester
 import chiseltest.iotesters.PeekPokeTester
-import test_util.BaseTester
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.math.{floor, pow, random, round}
 
@@ -13,10 +14,10 @@ import scala.math.{floor, pow, random, round}
   * @param c        TxRXCtrlのインスタンス
   * @param baudrate テスト時の1baudのサイクル数
   */
-class TxRxCtrlUnitTester(c: TxRxCtrl, baudrate: Int, clockFreq: Int) extends PeekPokeTester(c) {
+class TxRxCtrlUnitTester(c: TxRxControl, baudrate: Int, clockFreq: Int) extends PeekPokeTester(c) {
 
   val timeOutCycle = 1000
-  val duration = round(clockFreq * pow(10, 6) / baudrate).toInt
+  val duration = round(clockFreq.toDouble / baudrate.toDouble).toInt
 
   println(s"duration = $duration")
 
@@ -56,8 +57,8 @@ class TxRxCtrlUnitTester(c: TxRxCtrl, baudrate: Int, clockFreq: Int) extends Pee
     // send stop bits
     poke(c.io.uart.rx, true)
     for (_ <- Range(0, duration)) {
-      if (peek(c.io.r2c.rx.enable) == 0x1) {
-        expect(c.io.r2c.rx.data, data)
+      if (peek(c.io.csr2control.rx.enable) == 0x1) {
+        expect(c.io.csr2control.rx.data, data)
       }
       step(1)
     }
@@ -103,7 +104,7 @@ class TxRxCtrlUnitTester(c: TxRxCtrl, baudrate: Int, clockFreq: Int) extends Pee
 /**
   * TxRxCtrlのテストクラス
   */
-class TxRxCtrlTester extends BaseTester {
+class TxRxCtrlTester extends AnyFlatSpec with ChiselScalatestTester {
 
   val dutName = "ctrl"
 
@@ -113,23 +114,17 @@ class TxRxCtrlTester extends BaseTester {
   // 実際には500000で動くことになる(四捨五入でduration=2になるから）
   // 理論上のbaurateの上限は周波数の1/2
   val baudrate: Int = 500000
-  val clockFreq: Int = 1
+  val clockFreq: Int = 1_000_000
 
   it should "io.tx.emptyが0になると送信を行う [peri.uart-tx]" in {
-    val outDir = dutName + "-tx"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
-    test(new TxRxCtrl(baudrate, clockFreq)).runPeekPoke {
+    test(new TxRxControl(baudrate, clockFreq)).runPeekPoke {
       c =>
         new TxRxCtrlUnitTester(c, baudrate, clockFreq) {
           val txData = Range(0, 100).map(_ => floor(random * 256).toInt)
-          poke(c.io.r2c.tx.enable, true)
+          poke(c.io.csr2control.tx.enable, true)
 
           for (d <- txData) {
-            poke(c.io.r2c.tx.data, d)
+            poke(c.io.csr2control.tx.data, d)
             step(1)
             receive(d)
           }
@@ -138,13 +133,7 @@ class TxRxCtrlTester extends BaseTester {
   }
 
   it should "receive when io.peri.uart.rx.valid is low. [peri.uart-rx]" in {
-    val outDir = dutName + "-rx"
-    val args = getArgs(Map(
-      "--top-name" -> dutName,
-      "--target-dir" -> s"test_run_dir/$outDir"
-    ))
-
-    test(new TxRxCtrl(baudrate, clockFreq)).runPeekPoke {
+    test(new TxRxControl(baudrate, clockFreq)).runPeekPoke {
       c =>
         new TxRxCtrlUnitTester(c, baudrate, clockFreq) {
           val rxData = Range(0, 100).map(_ => floor(random * 256).toInt)

@@ -8,7 +8,7 @@ import chisel3.util._
 /**
   * FIFO リード側 I/O
   */
-class FIFORdIO[T <: Data](gen: T) extends Bundle {
+class FIFOReadIO[T <: Data](gen: T) extends Bundle {
   val enable = Input(Bool())
   val empty = Output(Bool())
   val data = Output(gen)
@@ -17,7 +17,7 @@ class FIFORdIO[T <: Data](gen: T) extends Bundle {
 /**
   * FIFO ライト側 I/O
   */
-class FIFOWrIO[T <: Data](gen: T) extends Bundle {
+class FIFOWriteIO[T <: Data](gen: T) extends Bundle {
   val enable = Input(Bool())
   val full = Output(Bool())
   val data = Input(gen)
@@ -34,8 +34,8 @@ class FIFOIO[T <: Data](gen: T, depth: Int = 16, debug: Boolean = false) extends
 
   val depthBits = log2Ceil(depth)
 
-  val wr = new FIFOWrIO(gen)
-  val rd = new FIFORdIO(gen)
+  val write = new FIFOWriteIO(gen)
+  val read = new FIFOReadIO(gen)
 
   val dbg = if (debug) {
     Some(Output(new Bundle {
@@ -68,32 +68,32 @@ class FIFO[T <: Data](gen: T, depth: Int = 16, debug: Boolean = false) extends M
   def ptrWrap(ptr: UInt): Bool = ptr === (depth - 1).U
 
   // リードポインタ
-  when(io.rd.enable) {
+  when(io.read.enable) {
     r_rdptr := Mux(ptrWrap(r_rdptr), 0.U, r_rdptr + 1.U)
   }
 
   // ライトポインタ
-  when(io.wr.enable) {
-    r_fifo(r_wrptr) := io.wr.data
+  when(io.write.enable) {
+    r_fifo(r_wrptr) := io.write.data
     r_wrptr := Mux(ptrWrap(r_wrptr), 0.U, r_wrptr + 1.U)
   }
 
   // データカウント
-  when(io.wr.enable && io.rd.enable) {
+  when(io.write.enable && io.read.enable) {
     r_data_ctr := r_data_ctr
   }.otherwise {
-    when(io.wr.enable) {
+    when(io.write.enable) {
       r_data_ctr := r_data_ctr + 1.U
     }
-    when(io.rd.enable) {
+    when(io.read.enable) {
       r_data_ctr := r_data_ctr - 1.U
     }
   }
 
   // IOとの接続
-  io.wr.full := r_data_ctr === depth.U
-  io.rd.empty := r_data_ctr === 0.U
-  io.rd.data := r_fifo(r_rdptr)
+  io.write.full := r_data_ctr === depth.U
+  io.read.empty := r_data_ctr === 0.U
+  io.read.data := r_fifo(r_rdptr)
 
   // テスト用のデバッグ端子の接続
   if (debug) {

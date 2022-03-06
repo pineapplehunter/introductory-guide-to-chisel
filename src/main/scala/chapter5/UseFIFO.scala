@@ -35,15 +35,15 @@ class UseFIFO extends Module {
 
   val m_some_q = Module(new FIFO(chiselTypeOf(io.in_some)))
 
-  m_some_q.io.wr.enable := io.wren
-  m_some_q.io.wr.data := io.in_some
-  m_some_q.io.rd.enable := io.wren
-  io.out_some := m_some_q.io.rd.data
+  m_some_q.io.write.enable := io.wren
+  m_some_q.io.write.data := io.in_some
+  m_some_q.io.read.enable := io.wren
+  io.out_some := m_some_q.io.read.data
 
   val m_other_q = Module(new FIFO(chiselTypeOf(io.in_other)))
 
-  m_other_q.io.wr.enable := io.wren
-  m_other_q.io.wr.data := io.in_other
-  m_other_q.io.rd.enable := io.wren
-  io.out_other := m_other_q.io.rd.data
+  m_other_q.io.write.enable := io.wren
+  m_other_q.io.write.data := io.in_other
+  m_other_q.io.read.enable := io.wren
+  io.out_other := m_other_q.io.read.data
 }

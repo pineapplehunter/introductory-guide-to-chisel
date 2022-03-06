@@ -15,8 +15,8 @@ class UartIO extends Bundle {
 
 class UartTopIO(p: SimpleIOParams)
                (implicit debug: Boolean = false) extends Bundle {
-  val mbus = Flipped(new SimpleIO(p))
-  val uart = new UartIO
+  val simpleIo = Flipped(new SimpleIO(p))
+  val uartIO = new UartIO
   val dbg = if (debug) Some(new CSRDebugIO) else None
 }
 
@@ -33,10 +33,10 @@ class UartTop(baudrate: Int, clockFreq: Int) extends Module {
   val io = IO(new UartTopIO(p))
 
   val m_reg = Module(new CSR(p))
-  val m_ctrl = Module(new TxRxCtrl(baudrate, clockFreq))
+  val m_ctrl = Module(new TxRxControl(baudrate, clockFreq))
 
-  io.uart <> m_ctrl.io.uart
+  io.uartIO <> m_ctrl.io.uart
 
-  io.mbus <> m_reg.io.sram
-  m_reg.io.r2c <> m_ctrl.io.r2c
+  io.simpleIo <> m_reg.csrIo.simpleIO
+  m_reg.csrIo.csr2control <> m_ctrl.io.csr2control
 }

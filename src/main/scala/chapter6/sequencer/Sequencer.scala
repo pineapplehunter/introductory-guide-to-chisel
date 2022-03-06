@@ -27,7 +27,7 @@ class Sequencer(p: SimpleIOParams)
   import chapter6.uart.RegInfo._
 
   val io = IO(new Bundle {
-    val sio = new SimpleIO(p)
+    val simpleIo = new SimpleIO(p)
     val debug_stm = if (debug) Some(Output(State())) else None
   })
 
@@ -45,31 +45,31 @@ class Sequencer(p: SimpleIOParams)
     r_read_interval := 0.U
   }
 
-  w_has_rx_data := (r_stm === sIdle) && io.sio.rddv && io.sio.rddata(0)
+  w_has_rx_data := (r_stm === sIdle) && io.simpleIo.readDataValid && io.simpleIo.readData(0)
 
   // sRXステートの制御
   val r_rx_data = Reg(UInt(8.W))
   val r_rx_fifo_req = RegNext(w_has_rx_data, false.B)
-  val w_done_rx_data = (r_stm === sRX) && io.sio.rddv
+  val w_done_rx_data = (r_stm === sRX) && io.simpleIo.readDataValid
 
   // sTXステートの制御
   val r_wait_data = RegInit(false.B)
   val r_fifo_full = RegInit(false.B)
   val w_done_tx_data = Wire(Bool())
-  val w_tx_state_addr = Mux(r_fifo_full, stat.U, txFifo.U)
+  val w_tx_state_addr = Mux(r_fifo_full, status.U, txFifo.U)
   val w_tx_state_rden = r_fifo_full && !r_wait_data && (r_stm === sTX)
   val w_tx_state_wren = !r_fifo_full && !r_wait_data && (r_stm === sTX)
 
   when(w_done_rx_data) {
-    r_rx_data := io.sio.rddata
+    r_rx_data := io.simpleIo.readData
   }
 
   // ステート遷移時にr_fifo_fullフラグをセット
   when(w_done_rx_data) {
     r_fifo_full := true.B
   }.elsewhen(r_stm === sTX) {
-    when(io.sio.rddv) {
-      r_fifo_full := io.sio.rddata(3)
+    when(io.simpleIo.readDataValid) {
+      r_fifo_full := io.simpleIo.readData(3)
     }
   }.otherwise {
     r_fifo_full := false.B
@@ -77,7 +77,7 @@ class Sequencer(p: SimpleIOParams)
 
   // sTXステート内の処理切り替え
   when(r_stm === sTX) {
-    when(io.sio.rddv) {
+    when(io.simpleIo.readDataValid) {
       r_wait_data := false.B
     }.elsewhen(w_done_tx_data) {
       r_wait_data := false.B
@@ -110,10 +110,10 @@ class Sequencer(p: SimpleIOParams)
   }
 
   // IOの接続
-  io.sio.wren := w_tx_state_wren
-  io.sio.wrdata := r_rx_data
-  io.sio.rden := w_read_req || r_rx_fifo_req || w_tx_state_rden
-  io.sio.addr := MuxCase(stat.U, Seq(
+  io.simpleIo.writeEnable := w_tx_state_wren
+  io.simpleIo.writeData := r_rx_data
+  io.simpleIo.readEnable := w_read_req || r_rx_fifo_req || w_tx_state_rden
+  io.simpleIo.address := MuxCase(status.U, Seq(
     (r_stm === sRX) -> rxFifo.U,
     (r_stm === sTX) -> w_tx_state_addr
   ))
